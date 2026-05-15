@@ -1,0 +1,15 @@
+﻿@model string
+@{
+    var initials = string.IsNullOrEmpty(Model) ? "?"
+        : string.Concat(Model.Split(' ')
+            .Where(w => w.Length > 0)
+            .Take(2)
+            .Select(w => w[0].ToString().ToUpper()));
+
+    var colors = new[] {
+        "avatar-blue", "avatar-green", "avatar-purple", "avatar-orange",
+        "avatar-red", "avatar-teal", "avatar-pink", "avatar-indigo"
+    };
+    var colorClass = colors[Math.Abs(Model?.GetHashCode() ?? 0) % colors.Length];
+}
+<div class="avatar @colorClass @ViewBag.AvatarSize">@initials</div>

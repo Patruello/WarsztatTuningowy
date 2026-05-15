@@ -1,0 +1,115 @@
+﻿@model WarsztatTuningowy.Models.Domain.Vehicle
+@{
+    ViewData["Title"] = "Edytuj pojazd";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Pojazdy</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-action="Details" asp-route-id="@Model.Id">
+                @Model.Brand @Model.Model
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Edycja</li>
+    </ol>
+</nav>
+
+<div class="page-header">
+    <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;
+         color:var(--gray-500);text-transform:uppercase; margin-bottom:.5rem">
+        Edycja rekordu
+    </div>
+    <h1>Edytuj pojazd</h1>
+    <p class="page-subtitle">
+        Zmieniasz dane <strong>@Model.Brand @Model.Model (@Model.Year)</strong>.
+    </p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header fw-bold">Dane pojazdu</div>
+            <div class="card-body p-4">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger mb-3"></div>
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Brand" class="form-label">Marka</label>
+                            <input asp-for="Brand" class="form-control" />
+                            <span asp-validation-for="Brand"
+                                  class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Model" class="form-label">Model</label>
+                            <input asp-for="Model" class="form-control" />
+                            <span asp-validation-for="Model"
+                                  class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Year" class="form-label">Rok</label>
+                            <input asp-for="Year" class="form-control" />
+                            <span asp-validation-for="Year"
+                                  class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="VIN" class="form-label">VIN</label>
+                            <input asp-for="VIN" class="form-control"
+                                   maxlength="17" />
+                            <span asp-validation-for="VIN"
+                                  class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EngineType" class="form-label">
+                            Typ silnika
+                        </label>
+                        <input asp-for="EngineType" class="form-control" />
+                        <span asp-validation-for="EngineType"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ECUType" class="form-label">Typ ECU</label>
+                        <input asp-for="ECUType" class="form-control" />
+                        <span asp-validation-for="ECUType"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ClientId" class="form-label">
+                            Właściciel
+                        </label>
+                        <select asp-for="ClientId" class="form-select"
+                                asp-items="ViewBag.ClientId">
+                            <option value="">— wybierz klienta —</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end pt-3 border-top">
+                        <a asp-action="Details" asp-route-id="@Model.Id"
+                           class="btn btn-outline-secondary">Anuluj</a>
+                        <button type="submit" class="btn btn-primary">
+                            ✓ Zapisz zmiany
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

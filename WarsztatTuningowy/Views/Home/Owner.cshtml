@@ -1,0 +1,319 @@
+﻿@using WarsztatTuningowy.Extensions
+@using WarsztatTuningowy.Models.Enums
+@model WarsztatTuningowy.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Pulpit";
+}
+
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h1>Pulpit</h1>
+        <p class="page-subtitle">
+            Dzień dobry! Oto aktualny stan warsztatu.
+        </p>
+    </div>
+    <a asp-controller="Orders" asp-action="Create"
+       class="btn btn-primary">+ Nowe zlecenie</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Aktywne zlecenia</div>
+            <div class="stat-value text-warning">@Model.ActiveOrders</div>
+            <div class="stat-sub">
+                @Model.TotalOrders łącznie ·
+                @Model.CompletedOrders zakończonych
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Klienci</div>
+            <div class="stat-value text-primary">@Model.TotalClients</div>
+            <div class="stat-sub">@Model.TotalVehicles pojazdów w bazie</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Stanowiska</div>
+            <div class="stat-value text-success">@Model.FreeWorkstations</div>
+            <div class="stat-sub">
+                wolnych · @Model.OccupiedWorkstations zajętych
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card
+            @(Model.LowStockPartsCount > 0 ? "border-danger" : "")">
+            <div class="stat-label">Alerty magazynu</div>
+            <div class="stat-value
+                @(Model.LowStockPartsCount > 0 ? "text-danger" : "text-success")">
+                @Model.LowStockPartsCount
+            </div>
+            <div class="stat-sub">
+                @(Model.LowStockPartsCount > 0
+                    ? "części poniżej minimum"
+                    : "magazyn OK")
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Aktywne zlecenia</span>
+                <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                    Wszystkie
+                </a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.ActiveOrdersList.Any())
+                {
+                    <p class="text-muted p-3 mb-0">
+                        Brak aktywnych zleceń 🎉
+                    </p>
+                }
+                else
+                {
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nr</th>
+                                <th>Pojazd / Klient</th>
+                                <th>Cel tuningu</th>
+                                <th>Status</th>
+                                <th>Mechanik</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.ActiveOrdersList)
+                            {
+                                var badgeClass = order.Status switch
+                                {
+                                    OrderStatus.Received =>
+                                        "bg-secondary",
+                                    OrderStatus.Diagnosis =>
+                                        "bg-info",
+                                    OrderStatus.InProgress =>
+                                        "bg-warning text-dark",
+                                    OrderStatus.QualityCheck =>
+                                        "bg-primary",
+                                    _ => "bg-secondary"
+                                };
+                                <tr>
+                                    <td>
+                                        <strong>#@order.Id</strong>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">
+                                            @order.Vehicle?.Brand
+                                            @order.Vehicle?.Model
+                                        </div>
+                                        <small class="text-muted">
+                                            @order.Vehicle?.Client?.FullName
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            @order.TuningGoal.GetDisplayName()
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge @badgeClass">
+                                            @order.Status.GetDisplayName()
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            @(order.DefaultMechanic?.FullName
+                                                ?? "—")
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                                           class="btn-action" title="Szczegóły">👁</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Stanowiska robocze</span>
+                <a asp-controller="Workstations" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                    Wszystkie
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach (var ws in Model.Workstations)
+                    {
+                        var active = ws.Assignments
+                            .FirstOrDefault(a => a.IsActive);
+                        <div class="col-md-6">
+                            <div class="p-3 rounded border-2 border
+                                @(ws.IsOccupied
+                                     ? "border-danger bg-danger bg-opacity-10"
+                                     : "border-success bg-success bg-opacity-10")">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold">@ws.Name</span>
+                                    @if (ws.IsOccupied)
+                                    {
+                                        <span class="badge bg-danger">
+                                            ZAJĘTE
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            WOLNE
+                                        </span>
+                                    }
+                                </div>
+                                <small class="text-muted d-block">
+                                    @ws.Type.GetDisplayName()
+                                </small>
+                                @if (active != null)
+                                {
+                                    <small class="text-danger d-block mt-1">
+                                        @active.Order?.Vehicle?.Brand
+                                        @active.Order?.Vehicle?.Model
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+        @if (Model.LowStockParts.Any())
+        {
+            <div class="card mb-4 border-danger">
+                <div class="card-header fw-bold text-danger">
+                    ⚠️ Niski stan magazynu
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>Część</th>
+                                <th>Stan</th>
+                                <th>Min</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var part in Model.LowStockParts)
+                            {
+                                <tr>
+                                    <td>
+                                        <small class="fw-semibold">
+                                            @part.Name
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            @part.Stock szt.
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            @part.MinStock
+                                        </small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="p-2">
+                        <a asp-controller="Parts" asp-action="Index"
+                           class="btn btn-sm btn-outline-danger w-100">
+                            Przejdź do magazynu →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card mb-4">
+            <div class="card-header fw-bold">Mechanicy</div>
+            <div class="card-body p-0">
+                @foreach (var mech in Model.Mechanics)
+                {
+                    var activeTask = mech.ServiceTasks
+                        .FirstOrDefault(st =>
+                            st.StartTime != null && st.EndTime == null);
+
+                    <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+                        @await Html.PartialAsync("_Avatar", mech.FullName)
+                        <div class="flex-fill">
+                            <div class="fw-semibold" style="font-size:.875rem">
+                                @mech.FullName
+                            </div>
+                            @if (activeTask != null)
+                            {
+                                <small class="text-warning">
+                                    ⏱ @activeTask.Name
+                                </small>
+                            }
+                            else
+                            {
+                                <small class="text-success">✓ Wolny</small>
+                            }
+                        </div>
+                        <div class="text-end">
+                            <div style="font-size:.75rem;color:var(--gray-500)">
+                                @mech.HourlyRateClient zł/h
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header fw-bold">Ostatnie zlecenia</div>
+            <div class="card-body p-0">
+                @foreach (var order in Model.RecentOrders)
+                {
+                    var dotClass = order.Status switch
+                    {
+                        OrderStatus.Completed => "bg-success",
+                        OrderStatus.InProgress => "bg-warning",
+                        OrderStatus.QualityCheck => "bg-primary",
+                        OrderStatus.Diagnosis => "bg-info",
+                        _ => "bg-secondary"
+                    };
+                    <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+                        <div class="rounded-circle @dotClass flex-shrink-0"
+                             style="width:10px;height:10px"></div>
+                        <div class="flex-fill">
+                            <div style="font-size:.875rem">
+                                <strong>#@order.Id</strong>
+                                @order.Vehicle?.Brand @order.Vehicle?.Model
+                            </div>
+                            <small class="text-muted">
+                                @order.Status.GetDisplayName() ·
+                                @order.CreatedAt.ToString("dd.MM.yyyy")
+                            </small>
+                        </div>
+                        <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                           class="btn-action" title="Szczegóły">👁</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

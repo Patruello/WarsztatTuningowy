@@ -1,0 +1,103 @@
+﻿@model IEnumerable<WarsztatTuningowy.Models.Domain.ServiceTask>
+
+@{
+    ViewData["Title"] = "Zadania serwisowe";
+    var orderId = ViewBag.OrderId as int?;
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        @if (orderId.HasValue)
+        {
+            <li class="breadcrumb-item"><a asp-controller="Orders" asp-action="Index">Zlecenia</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Orders" asp-action="Details" asp-route-id="@orderId">Zlecenie #@orderId</a></li>
+            <li class="breadcrumb-item active">Zadania</li>
+        }
+        else
+        {
+            <li class="breadcrumb-item active">Wszystkie zadania serwisowe</li>
+        }
+    </ol>
+</nav>
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Zadania serwisowe</h1>
+        @if (orderId.HasValue)
+        {
+            <p class="page-subtitle text-muted">Filtrujesz po zleceniu: <strong>#@orderId</strong></p>
+        }
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        + Dodaj nowe zadanie
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-modern w-100">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nazwa zadania</th>
+                        <th>Zlecenie</th>
+                        <th>Przypisany pracownik</th>
+                        <th>Status</th>
+                        <th>Czas pracy</th>
+                        <th class="text-end">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        bool notStarted = item.StartTime == null;
+                        bool inProgress = item.StartTime != null && item.EndTime == null;
+                        
+                        <tr>
+                            <td class="fw-bold">@item.Name</td>
+                            <td>
+                                <a asp-controller="Orders" asp-action="Details" asp-route-id="@item.OrderId" class="text-decoration-none">
+                                    #@item.OrderId
+                                </a>
+                            </td>
+                            <td>
+                                @(item.AssignedEmployee?.FullName ?? "—")
+                            </td>
+                            <td>
+                                @if (notStarted)
+                                {
+                                    <span class="badge bg-secondary">Nie rozpoczęto</span>
+                                }
+                                else if (inProgress)
+                                {
+                                    <span class="badge bg-warning text-dark">W trakcie</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Zakończono</span>
+                                }
+                            </td>
+                            <td>
+                                <strong>@item.TotalTime</strong>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a asp-action="Details" asp-route-id="@item.Id"
+                                       class="btn-action" title="Timer / Szczegóły">⏱</a>
+                                    <a asp-action="Edit" asp-route-id="@item.Id"
+                                       class="btn-action" title="Edytuj">✏️</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Brak zadań serwisowych do wyświetlenia.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

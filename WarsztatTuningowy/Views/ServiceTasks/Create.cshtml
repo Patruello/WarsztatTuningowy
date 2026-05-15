@@ -1,0 +1,78 @@
+﻿@model WarsztatTuningowy.Models.Domain.ServiceTask
+
+@{
+    ViewData["Title"] = "Nowe zadanie";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-controller="Orders" asp-action="Index">Zlecenia</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-controller="Orders" asp-action="Details" asp-route-id="@ViewBag.OrderId">
+                Zlecenie #@ViewBag.OrderId
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Nowe zadanie</li>
+    </ol>
+</nav>
+
+<div class="page-header mb-4">
+    <h1>Utwórz nowe zadanie</h1>
+    <p class="text-muted">Przypisz pracownika i opisz zakres prac.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Szczegóły zadania</div>
+            <div class="card-body p-4">
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label asp-for="Name" class="form-label fw-semibold"></label>
+                            <input asp-for="Name" class="form-control" placeholder="np. Wymiana filtrów i oleju" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
+
+                        <div class="col-md-6">
+                            <label asp-for="AssignedEmployeeId" class="form-label fw-semibold"></label>
+                            <select asp-for="AssignedEmployeeId" class="form-select" asp-items="ViewBag.AssignedEmployeeId">
+                                <option value="">-- Wybierz Mechanika --</option>
+                            </select>
+                            <span asp-validation-for="AssignedEmployeeId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Notes" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Dodatkowe informacje dla mechanika..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end pt-4 mt-4 border-top">
+                        <a asp-controller="Orders" asp-action="Details" asp-route-id="@ViewBag.OrderId"
+                           class="btn btn-outline-secondary">Anuluj</a>
+                        <button type="submit" class="btn btn-primary">✓ Utwórz zadanie</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mb-3">
+    Zadanie zostanie dodane do
+    <strong>Zlecenia #@ViewBag.OrderId</strong>.
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

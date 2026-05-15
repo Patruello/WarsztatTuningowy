@@ -1,0 +1,66 @@
+﻿@model WarsztatTuningowy.Models.Domain.Part
+@{
+    ViewData["Title"] = "Korekta stanu";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Magazyn części</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a>
+        </li>
+        <li class="breadcrumb-item active">Korekta stanu</li>
+    </ol>
+</nav>
+
+<div class="page-header">
+    <h1>Korekta stanu magazynowego</h1>
+    <p class="page-subtitle">
+        Część: <strong>@Model.Name</strong>
+    </p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header fw-bold">Korekta stanu</div>
+            <div class="card-body p-4">
+                <div class="alert @(Model.IsLowStock() ? "alert-warning" : "alert-info") mb-4">
+                    Aktualny stan:
+                    <strong>@Model.Stock szt.</strong>
+                    (minimum: @Model.MinStock szt.)
+                </div>
+
+                <form asp-action="StockAdjustment" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Ilość
+                            <span class="text-muted fw-normal">
+                                (+ przyjęcie / - wydanie)
+                            </span>
+                        </label>
+                        <input type="number" name="quantity" class="form-control"
+                               placeholder="np. 5 lub -2" required />
+                        <div class="form-text">
+                            Liczba dodatnia = przyjęcie na magazyn,
+                            ujemna = wydanie z magazynu.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end
+                        pt-3 border-top">
+                        <a asp-action="Details" asp-route-id="@Model.Id"
+                           class="btn btn-outline-secondary">Anuluj</a>
+                        <button type="submit" class="btn btn-primary">
+                            ✓ Zatwierdź korektę
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

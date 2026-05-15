@@ -1,0 +1,242 @@
+﻿@model WarsztatTuningowy.Models.Domain.Client
+@using WarsztatTuningowy.Extensions
+@using WarsztatTuningowy.Models.Enums
+
+@{
+    ViewData["Title"] = "Szczegóły klienta";
+    var allOrders = Model.Vehicles.SelectMany(v => v.Orders);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">@Model.FullName</h1>
+        <small class="text-muted">
+            Klient od @Model.CreatedAt.ToString("dd MMMM yyyy")
+        </small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+              Edytuj
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Wróć do listy
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header fw-bold">
+                Dane kontaktowe
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Telefon</dt>
+                    <dd class="col-sm-8">
+                        <a href="tel:@Model.Phone">@Model.Phone</a>
+                    </dd>
+                    <dt class="col-sm-4 text-muted">Email</dt>
+                    <dd class="col-sm-8">
+                        <a href="mailto:@Model.Email">@Model.Email</a>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="row g-3">
+            <div class="col-sm-4">
+                <div class="card text-center h-100 border-primary">
+                    <div class="card-body">
+                        <div class="fs-1 fw-bold text-primary">
+                            @Model.Vehicles.Count
+                        </div>
+                        <div class="text-muted small">Pojazdy</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card text-center h-100 border-success">
+                    <div class="card-body">
+                        <div class="fs-1 fw-bold text-success">
+                            @Model.Vehicles.Sum(v => v.Orders.Count)
+                        </div>
+                        <div class="text-muted small">Zlecenia</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card text-center h-100 border-warning">
+                    <div class="card-body">
+                        <div class="fs-1 fw-bold text-warning">
+                            @Model.Vehicles.Sum(v => v.Orders.Count(o =>
+                                o.Status == OrderStatus.InProgress ||
+                                o.Status == OrderStatus.Diagnosis ||
+                                o.Status == OrderStatus.Received))
+                        </div>
+                        <div class="text-muted small">Aktywne zlecenia</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Pojazdy</span>
+        <a asp-controller="Vehicles" asp-action="Create"
+           class="btn btn-sm btn-primary">
+            + Dodaj pojazd
+        </a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Vehicles.Any())
+        {
+            <p class="text-muted p-3 mb-0">Brak zarejestrowanych pojazdów</p>
+        }
+        else
+        {
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Pojazd</th>
+                        <th>VIN</th>
+                        <th>Silnik</th>
+                        <th>ECU</th>
+                        <th>Zlecenia</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var vehicle in Model.Vehicles
+                        .OrderByDescending(v => v.Year))
+                    {
+                        <tr>
+                            <td>
+                                <strong>@vehicle.Brand @vehicle.Model</strong>
+                                <small class="text-muted d-block">@vehicle.Year</small>
+                            </td>
+                            <td><code>@vehicle.VIN</code></td>
+                            <td>@vehicle.EngineType</td>
+                            <td><small>@vehicle.ECUType</small></td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    @vehicle.Orders.Count
+                                </span>
+                            </td>
+                            <td>
+                                <a asp-controller="Vehicles" asp-action="Details" asp-route-id="@vehicle.Id"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Szczegóły
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Historia zleceń</span>
+        <a asp-controller="Orders" asp-action="Create"
+           class="btn btn-sm btn-primary">+ Nowe zlecenie</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!allOrders.Any())
+        {
+            <p class="text-muted p-3 mb-0">Brak zleceń</p>
+        }
+        else
+        {
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nr</th>
+                        <th>Pojazd</th>
+                        <th>Cel tuningu</th>
+                        <th>Status</th>
+                        <th>Zaliczka</th>
+                        <th>Data</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in allOrders)
+                    {
+                        var rowClass = order.Status switch
+                        {
+                            OrderStatus.Completed => "table-success",
+                            OrderStatus.InProgress => "table-warning",
+                            OrderStatus.QualityCheck => "table-info",
+                            _ => ""
+                        };
+
+                        var badgeClass = order.Status switch
+                        {
+                            OrderStatus.Received => "bg-secondary",
+                            OrderStatus.Diagnosis => "bg-info",
+                            OrderStatus.InProgress => "bg-warning text-dark",
+                            OrderStatus.QualityCheck => "bg-primary",
+                            OrderStatus.Completed => "bg-success",
+                            _ => "bg-secondary"
+                        };
+
+                        <tr class="@rowClass">
+                            <td><strong>#@order.Id</strong></td>
+                            <td>
+                                @order.Vehicle.Brand @order.Vehicle.Model
+                                <small class="text-muted d-block">
+                                    @order.Vehicle.Year
+                                </small>
+                            </td>
+                            <td>
+                                <small>@order.TuningGoal.GetDisplayName()</small>
+                            </td>
+                            <td>
+                                <span class="badge @badgeClass">
+                                    @order.Status.GetDisplayName()
+                                </span>
+                            </td>
+                            <td>
+                                @if (order.DepositPaid)
+                                {
+                                    <span class="badge bg-success">Wpłacona</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Brak</span>
+                                }
+                            </td>
+                            <td>
+                                <small>
+                                    @order.CreatedAt.ToString("dd.MM.yyyy")
+                                </small>
+                            </td>
+                            <td>
+                                <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Szczegóły
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close"
+              data-bs-dismiss="alert"></button>
+    </div>
+}

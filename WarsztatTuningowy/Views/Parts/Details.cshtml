@@ -1,0 +1,155 @@
+﻿@model WarsztatTuningowy.Models.Domain.Part
+@{
+    ViewData["Title"] = "Szczegóły części";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Magazyn części</a>
+        </li>
+        <li class="breadcrumb-item active">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="mb-1">@Model.Name</h1>
+        <small class="text-muted">@Model.SupplierName</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="StockAdjustment" asp-route-id="@Model.Id"
+           class="btn btn-outline-warning">📦 Korekta stanu</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id"
+           class="btn btn-outline-primary">Edytuj</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Wróć do listy
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4">
+        @TempData["Success"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+        @TempData["Error"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Dane części</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Cena hurtowa</dt>
+                    <dd class="col-sm-7">
+                        @Model.WholesalePrice.ToString("C")
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Cena detaliczna</dt>
+                    <dd class="col-sm-7">
+                        @Model.RetailPrice.ToString("C")
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Marża</dt>
+                    <dd class="col-sm-7">
+                        <span class="@(Model.Margin() > 0 ? "text-success fw-bold" : "text-danger")">
+                            @Model.Margin().ToString("C")
+                        </span>
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Dostawca</dt>
+                    <dd class="col-sm-7">@Model.SupplierName</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Stan magazynowy</div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="fs-1 fw-bold @(Model.IsLowStock() ? "text-danger" : "text-success")">
+                        @Model.Stock
+                    </div>
+                    <div class="text-muted">sztuk na stanie</div>
+                </div>
+                @if (Model.IsLowStock())
+                {
+                    <div class="alert alert-danger py-2 text-center mb-0">
+                        ⚠️ Poniżej minimum (@Model.MinStock szt.)
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-success py-2 text-center mb-0">
+                        ✓ Stan OK (minimum: @Model.MinStock szt.)
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header fw-bold">Historia użycia w zleceniach</div>
+    <div class="card-body p-0">
+        @if (!Model.OrderParts.Any())
+        {
+            <p class="text-muted p-3 mb-0">
+                Część nie była używana w żadnym zleceniu
+            </p>
+        }
+        else
+        {
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Zlecenie</th>
+                        <th>Pojazd</th>
+                        <th>Ilość</th>
+                        <th>Zużyta</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var op in Model.OrderParts)
+                    {
+                        <tr>
+                            <td><strong>#@op.OrderId</strong></td>
+                            <td>
+                                @op.Order?.Vehicle?.Brand
+                                @op.Order?.Vehicle?.Model
+                            </td>
+                            <td>@op.Quantity szt.</td>
+                            <td>
+                                @if (op.IsUsed)
+                                {
+                                    <span class="badge bg-success">Tak</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Nie</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Orders"
+                                   asp-action="Details"
+                                   asp-route-id="@op.OrderId"
+                                   class="btn-action" title="Zlecenie">👁</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

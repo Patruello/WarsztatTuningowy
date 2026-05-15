@@ -1,0 +1,67 @@
+﻿@model IEnumerable<WarsztatTuningowy.Models.Domain.Vehicle>
+@{
+    ViewData["Title"] = "Pojazdy";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Pojazdy</li>
+    </ol>
+</nav>
+
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h1>Pojazdy</h1>
+        <p class="page-subtitle">@Model.Count() pojazdów w bazie</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">+ Dodaj pojazd</a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-modern w-100">
+            <thead>
+                <tr>
+                    <th>Pojazd</th>
+                    <th>VIN</th>
+                    <th>Silnik</th>
+                    <th>ECU</th>
+                    <th>Właściciel</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@item.Brand @item.Model</strong>
+                            <small class="text-muted d-block">@item.Year</small>
+                        </td>
+                        <td><code>@item.VIN</code></td>
+                        <td>@item.EngineType</td>
+                        <td><small>@item.ECUType</small></td>
+                        <td>
+                            <a asp-controller="Clients" asp-action="Details"
+                                   asp-route-id="@item.ClientId"
+                                   class="text-decoration-none">
+                                @item.Client.FullName
+                            </a>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.Id"
+                                   class="btn-action" title="Szczegóły">👁</a>
+                                <a asp-action="Edit" asp-route-id="@item.Id"
+                                   class="btn-action" title="Edytuj">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id"
+                                   class="btn-action btn-action-danger"
+                                   title="Usuń">🗑</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,149 @@
+﻿@using WarsztatTuningowy.Extensions
+@model WarsztatTuningowy.Models.Domain.Workstation
+@{
+    ViewData["Title"] = "Szczegóły stanowiska";
+    var activeAssignment = Model.Assignments.FirstOrDefault(a => a.IsActive);
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Stanowiska</a>
+        </li>
+        <li class="breadcrumb-item active">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="mb-1">
+            @Model.Name
+            @if (Model.IsOccupied)
+            {
+                <span class="badge bg-danger ms-2 fs-6">ZAJĘTE</span>
+            }
+            else
+            {
+                <span class="badge bg-success ms-2 fs-6">WOLNE</span>
+            }
+        </h1>
+        <small class="text-muted">@Model.Type.GetDisplayName()</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id"
+           class="btn btn-outline-primary">Edytuj</a>
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">Wróć do listy</a>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (activeAssignment != null)
+{
+    <div class="card border-warning mb-4">
+        <div class="card-header fw-bold text-warning">
+            ⚡ Aktualnie zajęte przez
+        </div>
+        <div class="card-body">
+            <div class="fw-semibold fs-5">
+                @activeAssignment.Order?.Vehicle?.Brand
+                @activeAssignment.Order?.Vehicle?.Model
+                (@activeAssignment.Order?.Vehicle?.Year)
+            </div>
+            <div class="text-muted small mt-1">
+                Zlecenie #@activeAssignment.OrderId ·
+                Klient: @activeAssignment.Order?.Vehicle?.Client?.FullName
+            </div>
+            <div class="text-muted small">
+                Zajęte od: @activeAssignment.AssignedAt.ToString("dd.MM.yyyy HH:mm")
+            </div>
+            <a asp-controller="Orders" asp-action="Details"
+               asp-route-id="@activeAssignment.OrderId"
+               class="btn btn-sm btn-outline-warning mt-3">
+                Zobacz zlecenie →
+            </a>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header fw-bold">Historia przypisań</div>
+    <div class="card-body p-0">
+        @if (!Model.Assignments.Any())
+        {
+            <p class="text-muted p-3 mb-0">
+                Stanowisko nie było jeszcze używane
+            </p>
+        }
+        else
+        {
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Zlecenie</th>
+                        <th>Pojazd</th>
+                        <th>Od</th>
+                        <th>Do</th>
+                        <th>Czas (min)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.Assignments
+                        .OrderByDescending(a => a.AssignedAt))
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Orders"
+                                   asp-action="Details"
+                                   asp-route-id="@a.OrderId">
+                                    #@a.OrderId
+                                </a>
+                            </td>
+                            <td>
+                                @a.Order?.Vehicle?.Brand
+                                @a.Order?.Vehicle?.Model
+                            </td>
+                            <td>
+                                <small>
+                                    @a.AssignedAt.ToString("dd.MM.yyyy HH:mm")
+                                </small>
+                            </td>
+                            <td>
+                                <small>
+                                    @(a.ReleasedAt?.ToString("dd.MM.yyyy HH:mm")
+                                        ?? "—")
+                                </small>
+                            </td>
+                            <td>
+                                @(a.IsActive ? "W trakcie" :
+                                    a.DurationMinutes.ToString() + " min")
+                            </td>
+                            <td>
+                                @if (a.IsActive)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Aktywne
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Zakończone
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

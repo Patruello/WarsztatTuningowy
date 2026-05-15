@@ -1,0 +1,136 @@
+﻿@using WarsztatTuningowy.Extensions
+@using WarsztatTuningowy.Models.Enums
+@model IEnumerable<WarsztatTuningowy.Models.Domain.Order>
+@{
+    ViewData["Title"] = "Zlecenia";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Zlecenia</li>
+    </ol>
+</nav>
+
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h1>Zlecenia</h1>
+        <p class="page-subtitle">@Model.Count() zleceń łącznie</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">+ Nowe zlecenie</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Wszystkie</div>
+            <div class="stat-value">@Model.Count()</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">W realizacji</div>
+            <div class="stat-value text-warning">
+                @Model.Count(o => o.Status == OrderStatus.InProgress)
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Kontrola jakości</div>
+            <div class="stat-value text-primary">
+                @Model.Count(o => o.Status == OrderStatus.QualityCheck)
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Zakończone</div>
+            <div class="stat-value text-success">
+                @Model.Count(o => o.Status == OrderStatus.Completed)
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-modern w-100">
+            <thead>
+                <tr>
+                    <th>Nr</th>
+                    <th>Pojazd / Klient</th>
+                    <th>Cel tuningu</th>
+                    <th>Status</th>
+                    <th>Mechanik</th>
+                    <th>Zaliczka</th>
+                    <th>Data</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var badgeClass = item.Status switch
+                    {
+                        OrderStatus.Received => "bg-secondary",
+                        OrderStatus.Diagnosis => "bg-info",
+                        OrderStatus.InProgress => "bg-warning text-dark",
+                        OrderStatus.QualityCheck => "bg-primary",
+                        OrderStatus.Completed => "bg-success",
+                        _ => "bg-secondary"
+                    };
+                    <tr>
+                        <td><strong>#@item.Id</strong></td>
+                        <td>
+                            <div class="fw-semibold">
+                                @item.Vehicle?.Brand @item.Vehicle?.Model
+                            </div>
+                            <small class="text-muted">
+                                @item.Vehicle?.Client?.FullName
+                            </small>
+                        </td>
+                        <td>
+                            <small>@item.TuningGoal.GetDisplayName()</small>
+                        </td>
+                        <td>
+                            <span class="badge @badgeClass">
+                                @item.Status.GetDisplayName()
+                            </span>
+                        </td>
+                        <td>
+                            <small>
+                                @(item.DefaultMechanic?.FullName ?? "—")
+                            </small>
+                        </td>
+                        <td>
+                            @if (item.DepositPaid)
+                            {
+                                <span class="badge bg-success">Wpłacona</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Brak</span>
+                            }
+                        </td>
+                        <td>
+                            <small>
+                                @item.CreatedAt.ToString("dd.MM.yyyy")
+                            </small>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.Id"
+                                   class="btn-action" title="Szczegóły">👁</a>
+                                <a asp-action="Edit" asp-route-id="@item.Id"
+                                   class="btn-action" title="Edytuj">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id"
+                                   class="btn-action btn-action-danger"
+                                   title="Usuń">🗑</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

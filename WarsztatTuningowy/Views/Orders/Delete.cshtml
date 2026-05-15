@@ -1,0 +1,62 @@
+﻿@using WarsztatTuningowy.Extensions
+@using WarsztatTuningowy.Models.Enums
+@model WarsztatTuningowy.Models.Domain.Order
+@{
+    ViewData["Title"] = "Usuń zlecenie";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Zlecenia</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-action="Details" asp-route-id="@Model.Id">
+                Zlecenie #@Model.Id
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Usuń</li>
+    </ol>
+</nav>
+
+<div class="delete-confirm-box">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="text-danger fw-bold"
+              style="font-size:.75rem;letter-spacing:.05em">
+            ⚠️ OPERACJA NIEODWRACALNA
+        </span>
+    </div>
+
+    <h4 class="fw-bold mb-2">Usunąć zlecenie #@Model.Id?</h4>
+    <p class="text-muted mb-4" style="font-size:.9rem">
+        Zlecenie dla pojazdu
+        <strong>@Model.Vehicle?.Brand @Model.Vehicle?.Model</strong>
+        zostanie trwale usunięte wraz ze wszystkimi zadaniami.
+    </p>
+
+    <div class="p-3 mb-4"
+          style="background:var(--gray-50);border-radius:8px;
+          border:1px solid var(--gray-200)">
+        <div class="fw-semibold">
+            Zlecenie #@Model.Id —
+            @Model.TuningGoal.GetDisplayName()
+        </div>
+        <div class="text-muted small mt-1">
+            @Model.Vehicle?.Brand @Model.Vehicle?.Model ·
+            @Model.Status.GetDisplayName() ·
+            @Model.CreatedAt.ToString("dd.MM.yyyy")
+        </div>
+    </div>
+
+    <form asp-action="Delete">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="d-flex gap-2 justify-content-end">
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">Anuluj</a>
+            <button type="submit" class="btn btn-danger">
+                🗑 Tak, usuń zlecenie
+            </button>
+        </div>
+    </form>
+</div>

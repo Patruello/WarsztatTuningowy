@@ -1,0 +1,152 @@
+﻿@model IEnumerable<WarsztatTuningowy.Models.Domain.Client>
+@using WarsztatTuningowy.Models.Enums
+@{
+    var totalVehicles = Model.Sum(c => c.Vehicles.Count);
+    var activeOrders = Model.Sum(c =>
+        c.Vehicles.Sum(v =>
+            v.Orders.Count(o => o.Status != OrderStatus.Completed)));
+    var withoutVehicle = Model.Count(c => !c.Vehicles.Any());
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Klienci</li>
+    </ol>
+</nav>
+
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h1>Klienci</h1>
+        <p class="page-subtitle">
+            @Model.Count() klientów w bazie
+        </p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        + Dodaj klienta
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Klienci w bazie</div>
+            <div class="stat-value text-primary">@Model.Count()</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Pojazdy</div>
+            <div class="stat-value">@totalVehicles</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Aktywne zlecenia</div>
+            <div class="stat-value text-warning">@activeOrders</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Bez pojazdu</div>
+            <div class="stat-value text-danger">
+                @Model.Count(c => !c.Vehicles.Any())
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-modern w-100">
+            <thead>
+                <tr>
+                    <th>Klient</th>
+                    <th>Kontakt</th>
+                    <th>Pojazdy</th>
+                    <th>Zlecenia</th>
+                    <th>Klient od</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.OrderBy(c => c.FullName))
+                {
+                    var itemOrders = item.Vehicles.SelectMany(v => v.Orders).ToList();
+                    var activeCount = itemOrders.Count(o => o.Status != OrderStatus.Completed);
+
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                @await Html.PartialAsync("_Avatar", item.FullName)
+                                <div>
+                                    <div class="fw-semibold">
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                           class="text-decoration-none text-dark">
+                                            @item.FullName
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-sm">@item.Phone</div>
+                            <div class="text-muted" style="font-size:.8rem">
+                                @item.Email
+                            </div>
+                        </td>
+                        <td>
+                            @if (item.Vehicles.Any())
+                            {
+                                <span>
+                                    @item.Vehicles.First().Brand
+                                    @item.Vehicles.First().Model
+                                </span>
+                                @if (item.Vehicles.Count > 1)
+                                {
+                                    <span class="badge bg-light text-dark ms-1">
+                                        +@(item.Vehicles.Count - 1)
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (activeCount > 0)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    @activeCount aktywne
+                                </span>
+                            }
+                            else if (itemOrders.Any())
+                            {
+                                <span class="badge bg-success">Zakończone</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">brak zleceń</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="text-muted" style="font-size:.85rem">
+                                @item.CreatedAt.ToString("dd MMM yyyy")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.Id"
+                                   class="btn-action" title="Szczegóły">👁</a>
+                                <a asp-action="Edit" asp-route-id="@item.Id"
+                                   class="btn-action" title="Edytuj">✏️</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id"
+                                   class="btn-action btn-action-danger" title="Usuń">🗑</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

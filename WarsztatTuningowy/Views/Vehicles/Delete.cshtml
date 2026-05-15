@@ -1,0 +1,89 @@
+﻿@model WarsztatTuningowy.Models.Domain.Vehicle
+@{
+    ViewData["Title"] = "Usuń pojazd";
+    var orderCount = Model.Orders?.Count ?? 0;
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Pojazdy</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-action="Details" asp-route-id="@Model.Id">
+                @Model.Brand @Model.Model
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Usuń</li>
+    </ol>
+</nav>
+
+<div class="delete-confirm-box">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="text-danger fw-bold"
+              style="font-size:.75rem;letter-spacing:.05em">
+            ⚠️ OPERACJA NIEODWRACALNA
+        </span>
+    </div>
+
+    <h4 class="fw-bold mb-2">
+        Usunąć pojazd @Model.Brand @Model.Model?
+    </h4>
+    <p class="text-muted mb-4" style="font-size:.9rem">
+        Razem z pojazdem zostanie usuniętych
+        <strong>@orderCount zleceń</strong>.
+        Właściciel <strong>@Model.Client.FullName</strong>
+        pozostanie w systemie.
+    </p>
+
+    <div class="d-flex align-items-center gap-3 p-3 mb-4"
+         style="background:var(--gray-50);border-radius:8px;
+         border:1px solid var(--gray-200)">
+        <div class="flex-fill">
+            <div class="fw-semibold">
+                @Model.Brand @Model.Model (@Model.Year)
+            </div>
+            <div class="text-muted" style="font-size:.85rem">
+                <code>@Model.VIN</code> · @Model.EngineType
+            </div>
+        </div>
+        <div class="text-center px-3">
+            <div class="fw-bold">@orderCount</div>
+            <div style="font-size:.75rem;color:var(--gray-500)">zleceń</div>
+        </div>
+    </div>
+
+    <form asp-action="Delete">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold">
+                Aby potwierdzić, wpisz
+                <strong>@Model.Brand @Model.Model</strong>
+            </label>
+            <input type="text" id="confirmName" class="form-control"
+                   placeholder="@Model.Brand @Model.Model" autocomplete="off" />
+            <div class="form-text">Wielkość liter nie ma znaczenia.</div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">Anuluj</a>
+            <button type="submit" class="btn btn-danger"
+                    id="deleteBtn" disabled>
+                🗑 Tak, usuń pojazd
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        var expected = '@(Model.Brand + " " + Model.Model)'.toLowerCase().trim();
+        document.getElementById('confirmName').addEventListener('input', function() {
+            document.getElementById('deleteBtn').disabled =
+                this.value.toLowerCase().trim() !== expected;
+        });
+    </script>
+}

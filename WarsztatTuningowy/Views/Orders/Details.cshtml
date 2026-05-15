@@ -1,0 +1,293 @@
+﻿@using WarsztatTuningowy.Extensions
+@using WarsztatTuningowy.Models.Enums
+@model WarsztatTuningowy.Models.Domain.Order
+@{
+    ViewData["Title"] = $"Zlecenie #{Model.Id}";
+
+    var badgeClass = Model.Status switch
+    {
+        OrderStatus.Received => "bg-secondary",
+        OrderStatus.Diagnosis => "bg-info",
+        OrderStatus.InProgress => "bg-warning text-dark",
+        OrderStatus.QualityCheck => "bg-primary",
+        OrderStatus.Completed => "bg-success",
+        _ => "bg-secondary"
+    };
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Zlecenia</a>
+        </li>
+        <li class="breadcrumb-item active">Zlecenie #@Model.Id</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="mb-1">
+            Zlecenie #@Model.Id
+            <span class="badge @badgeClass ms-2 fs-6">
+                @Model.Status.GetDisplayName()
+            </span>
+        </h1>
+        <small class="text-muted">
+            @Model.Vehicle?.Brand @Model.Vehicle?.Model (@Model.Vehicle?.Year) ·
+            <a asp-controller="Clients" asp-action="Details"
+                  asp-route-id="@Model.Vehicle?.ClientId">
+                @Model.Vehicle?.Client?.FullName
+            </a>
+        </small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id"
+           class="btn btn-outline-primary">Edytuj</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Wróć do listy
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex gap-2 mt-3">
+    <a asp-action="GenerateTuningProtocol" asp-route-id="@Model.Id"
+          class="btn btn-outline-success" target="_blank">
+        📄 Tuning Protocol PDF
+    </a>
+    @if (Model.Status == OrderStatus.QualityCheck ||
+     Model.Status == OrderStatus.Completed)
+    {
+        <a asp-action="GenerateInvoice" asp-route-id="@Model.Id"
+           class="btn btn-outline-primary" target="_blank">
+            🧾 Faktura VAT PDF
+        </a>
+    }
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Dane zlecenia</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Cel tuningu</dt>
+                    <dd class="col-sm-7">
+                        @Model.TuningGoal.GetDisplayName()
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Szac. czas</dt>
+                    <dd class="col-sm-7">@Model.EstimatedHours h</dd>
+                    <dt class="col-sm-5 text-muted">Zaliczka</dt>
+                    <dd class="col-sm-7">
+                        @if (Model.DepositPaid)
+                        {
+                            <span class="badge bg-success">Wpłacona</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Brak zaliczki</span>
+                        }
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Data utworzenia</dt>
+                    <dd class="col-sm-7">
+                        @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Domyślny mechanik</dt>
+                    <dd class="col-sm-7">
+                        @(Model.DefaultMechanic?.FullName ?? "—")
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Pojazd</div>
+            <div class="card-body">
+                <div class="fw-semibold fs-5 mb-2">
+                    @Model.Vehicle?.Brand @Model.Vehicle?.Model
+                    <small class="text-muted">(@Model.Vehicle?.Year)</small>
+                </div>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">VIN</dt>
+                    <dd class="col-sm-8">
+                        <code>@Model.Vehicle?.VIN</code>
+                    </dd>
+                    <dt class="col-sm-4 text-muted">Silnik</dt>
+                    <dd class="col-sm-8">@Model.Vehicle?.EngineType</dd>
+                    <dt class="col-sm-4 text-muted">ECU</dt>
+                    <dd class="col-sm-8">@Model.Vehicle?.ECUType</dd>
+                    <dt class="col-sm-4 text-muted">Właściciel</dt>
+                    <dd class="col-sm-8">
+                        <a asp-controller="Clients" asp-action="Details"
+                               asp-route-id="@Model.Vehicle?.ClientId">
+                            @Model.Vehicle?.Client?.FullName
+                        </a>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">Zmiana statusu</div>
+    <div class="card-body">
+        <div class="d-flex gap-2 flex-wrap">
+            @foreach (var status in Enum.GetValues<OrderStatus>())
+            {
+                if (status != Model.Status)
+                {
+                    var btnClass = status switch
+                    {
+                        OrderStatus.Received => "btn-outline-secondary",
+                        OrderStatus.Diagnosis => "btn-outline-info",
+                        OrderStatus.InProgress => "btn-outline-warning",
+                        OrderStatus.QualityCheck => "btn-outline-primary",
+                        OrderStatus.Completed => "btn-outline-success",
+                        _ => "btn-outline-secondary"
+                    };
+                    <form asp-action="ChangeStatus" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="newStatus" value="@status" />
+                        <button type="submit" class="btn btn-sm @btnClass">
+                            → @status.GetDisplayName()
+                        </button>
+                    </form>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Zadania serwisowe</span>
+        <a asp-controller="ServiceTasks" asp-action="Create"
+           asp-route-orderId="@Model.Id" class="btn btn-sm btn-primary">+ Dodaj zadanie</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.ServiceTasks.Any())
+        {
+            <p class="text-muted p-3 mb-0">Brak zadań dla tego zlecenia</p>
+        }
+        else
+        {
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Nazwa zadania</th>
+                        <th>Pracownik</th>
+                        <th>Status</th>
+                        <th>Czas pracy</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model.ServiceTasks)
+                    {
+                        <tr>
+                            <td>@task.Name</td>
+                            <td>
+                                <small>
+                                    @(task.AssignedEmployee?.FullName ?? "—")
+                                </small>
+                            </td>
+                            <td>
+                                @if (task.StartTime == null)
+                                {
+                                    <span class="badge bg-secondary">
+                                        Nie rozpoczęto
+                                    </span>
+                                }
+                                else if (task.EndTime == null)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        W trakcie
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        Zakończono
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <small>@task.TotalTime</small>
+                            </td>
+                            <td>
+                                <a asp-controller="ServiceTasks" asp-action="Details"
+                                   asp-route-id="@task.Id" class="btn-action" title="Timer">
+                                   ⏱</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header fw-bold">Części</div>
+    <div class="card-body p-0">
+        @if (!Model.OrderParts.Any())
+        {
+            <p class="text-muted p-3 mb-0">Brak przypisanych części</p>
+        }
+        else
+        {
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Część</th>
+                        <th>Ilość</th>
+                        <th>Cena detal.</th>
+                        <th>Zużyta</th>
+                        <th>VIN-lock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var op in Model.OrderParts)
+                    {
+                        <tr>
+                            <td>@op.Part?.Name</td>
+                            <td>@op.Quantity szt.</td>
+                            <td>@op.Part?.RetailPrice.ToString("C")</td>
+                            <td>
+                                @if (op.IsUsed)
+                                {
+                                    <span class="badge bg-success">Tak</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Nie</span>
+                                }
+                            </td>
+                            <td>
+                                @if (op.IsVinLocked)
+                                {
+                                    <code>@op.LockedVin</code>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

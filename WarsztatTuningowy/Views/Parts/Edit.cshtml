@@ -1,0 +1,112 @@
+﻿@model WarsztatTuningowy.Models.Domain.Part
+@{
+    ViewData["Title"] = "Edytuj część";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Magazyn części</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a>
+        </li>
+        <li class="breadcrumb-item active">Edycja</li>
+    </ol>
+</nav>
+
+<div class="page-header">
+    <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;
+         color:var(--gray-500);text-transform:uppercase; margin-bottom:.5rem">
+        Edycja rekordu
+    </div>
+    <h1>Edytuj część</h1>
+    <p class="page-subtitle">
+        Zmieniasz dane <strong>@Model.Name</strong>.
+    </p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header fw-bold">Dane części</div>
+            <div class="card-body p-4">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Nazwa</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="WholesalePrice" class="form-label">
+                                Cena hurtowa (zł)
+                            </label>
+                            <input asp-for="WholesalePrice" class="form-control" />
+                            <span asp-validation-for="WholesalePrice"
+                                  class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="RetailPrice" class="form-label">
+                                Cena detaliczna (zł)
+                            </label>
+                            <input asp-for="RetailPrice" class="form-control" />
+                            <span asp-validation-for="RetailPrice"
+                                  class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Stan magazynowy</label>
+                        <input type="text" class="form-control"
+                               value="@Model.Stock szt." readonly />
+                        <div class="form-text">
+                            Stan zmienia się przez
+                            <a asp-action="StockAdjustment"
+                                   asp-route-id="@Model.Id">
+                                Korektę stanu
+                            </a>.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MinStock" class="form-label">
+                            Stan minimalny (szt.)
+                        </label>
+                        <input asp-for="MinStock" class="form-control" />
+                        <span asp-validation-for="MinStock"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="SupplierName" class="form-label">
+                            Dostawca
+                        </label>
+                        <input asp-for="SupplierName" class="form-control" />
+                        <span asp-validation-for="SupplierName"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end
+                         pt-3 border-top">
+                        <a asp-action="Details" asp-route-id="@Model.Id"
+                           class="btn btn-outline-secondary">Anuluj</a>
+                        <button type="submit" class="btn btn-primary">
+                            ✓ Zapisz zmiany
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

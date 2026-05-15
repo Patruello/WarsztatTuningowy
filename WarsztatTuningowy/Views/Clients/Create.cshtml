@@ -1,0 +1,191 @@
+﻿@model WarsztatTuningowy.Models.Domain.Client
+@{
+    ViewData["Title"] = "Nowy klient";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Klienci</a>
+        </li>
+        <li class="breadcrumb-item active">Nowy klient</li>
+    </ol>
+</nav>
+
+<div class="page-header">
+    <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em; color:var(--gray-500);text-transform:uppercase;margin-bottom:.5rem">Nowy rekord</div>
+    <h1>Dodaj klienta</h1>
+    <p class="page-subtitle">Wprowadź podstawowe dane kontaktowe — pojazdy dodasz w kolejnym kroku.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">Dane klienta</div>
+            <div class="card-body p-4">
+                <form asp-action="Create" )" id="clientForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="FullName" class="form-label">
+                            Imię i nazwisko
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="FullName" class="form-control"
+                               placeholder="np. Jan Kowalski" id="fullNameInput" />
+                        <div class="form-text">
+                            Tak jak ma być wyświetlane na fakturze.
+                        </div>
+                        <span asp-validation-for="FullName"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label">
+                                Telefon
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text
+                                bg-white text-muted">📞</span>
+                                <input asp-for="Phone" class="form-control"
+                                       placeholder="+48 600 000 000" />
+                            </div>
+                            <div class="form-text">
+                                Format dowolny — np. +48 600 000 000
+                            </div>
+                            <span asp-validation-for="Phone"
+                                  class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label">
+                                E-mail
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text
+                                bg-white text-muted">✉️</span>
+                                <input asp-for="Email" class="form-control"
+                                       placeholder="klient@example.com"
+                                       id="emailInput" />
+                            </div>
+                            <div class="form-text">
+                                Wysyłamy tu potwierdzenia odbioru.
+                            </div>
+                            <span asp-validation-for="Email"
+                                  class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end pt-3 border-top">
+                        @if (!string.IsNullOrEmpty(ViewBag.ReturnUrl as string))
+                        {
+                            <a href="@ViewBag.ReturnUrl"
+                               class="btn btn-outline-secondary">Anuluj</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Index"
+                               class="btn btn-outline-secondary">Anuluj</a>
+                        }
+                        <button type="submit" class="btn btn-primary">Utwórz klienta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Podgląd karty</div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="avatar avatar-lg avatar-blue" id="previewAvatar">
+                        ?
+                    </div>
+                    <div>
+                        <div class="fw-semibold" id="previewName">
+                            @(Model?.FullName ?? "Imię Nazwisko")
+                        </div>
+                        <div class="text-muted small" id="previewPhone">
+                            @(Model?.Phone ?? "Telefon")
+                        </div>
+                        <div class="text-muted small" id="previewEmail">
+                            @(Model?.Email ?? "Email")
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">
+                    ℹ️ Po zapisie przekierujemy do karty klienta.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+
+        var colors = [
+            'avatar-blue','avatar-green','avatar-purple','avatar-orange',
+            'avatar-red','avatar-teal','avatar-pink','avatar-indigo'
+        ];
+
+        function getInitials(name) {
+            return (name || '').trim().split(' ')
+                .filter(w => w.length > 0)
+                .slice(0, 2)
+                .map(w => w[0].toUpperCase())
+                .join('') || '?';
+        }
+
+        function getColor(name) {
+            var hash = 0;
+            for (var i = 0; i < name.length; i++)
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return colors[Math.abs(hash) % colors.Length];
+        }
+
+        function bindPreview(inputId, previewId) {
+            var input = document.getElementById(inputId);
+            var preview = document.getElementById(previewId);
+            if (input && preview) {
+                input.addEventListener('input', function() {
+                    preview.textContent = this.value || preview.dataset.placeholder;
+                });
+            }
+        }
+
+        document.getElementById('fullNameInput')
+            ?.addEventListener('input', function() {
+                var name = this.value;
+                document.getElementById('previewName').textContent =
+                    name || 'Imię Nazwisko';
+                document.getElementById('previewAvatar').textContent =
+                    getInitials(name);
+
+                var avatar = document.getElementById('previewAvatar');
+                colors.forEach(c => avatar.classList.remove(c));
+                if (name) {
+                    var hash = 0;
+                    for (var i = 0; i < name.length; i++)
+                        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                    avatar.classList.add(colors[Math.abs(hash) % colors.length]);
+                } else {
+                    avatar.classList.add('avatar-blue');
+                }
+            });
+
+        document.getElementById('emailInput')
+            ?.addEventListener('input', function() {
+                document.getElementById('previewEmail').textContent =
+                    this.value || 'Email';
+            });
+    </script>
+}

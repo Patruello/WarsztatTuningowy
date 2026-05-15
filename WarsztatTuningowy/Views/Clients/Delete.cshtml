@@ -1,0 +1,93 @@
+﻿@model WarsztatTuningowy.Models.Domain.Client
+@{
+    ViewData["Title"] = "Usuń klienta";
+    var orderCount = Model.Vehicles.Sum(v => v.Orders.Count);
+}
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Klienci</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-action="Details" asp-route-id="@Model.Id">
+                @Model.FullName
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Usuń</li>
+    </ol>
+</nav>
+
+<div class="delete-confirm-box">
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="text-danger fw-bold" style="font-size:.75rem;
+            letter-spacing:.05em">
+            ⚠️ OPERACJA NIEODWRACALNA
+        </span>
+    </div>
+
+    <h4 class="fw-bold mb-2">
+        Usunąć klienta @Model.FullName?
+    </h4>
+    <p class="text-muted mb-4" style="font-size:.9rem">
+        Razem z rekordem klienta zostanie usuniętych
+        <strong>@Model.Vehicles.Count pojazdów</strong> oraz
+        <strong>@orderCount zleceń</strong>.
+    </p>
+
+    <div class="d-flex align-items-center gap-3 p-3 mb-4"
+         style="background:var(--gray-50);border-radius:8px;
+         border:1px solid var(--gray-200)">
+        @await Html.PartialAsync("_Avatar", Model.FullName)
+        <div class="flex-fill">
+            <div class="fw-semibold">@Model.FullName</div>
+            <div class="text-muted" style="font-size:.85rem">
+                @Model.Phone · @Model.Email
+            </div>
+        </div>
+        <div class="text-center px-3">
+            <div class="fw-bold">@Model.Vehicles.Count</div>
+            <div style="font-size:.75rem;color:var(--gray-500)">pojazdów</div>
+        </div>
+        <div class="text-center px-3">
+            <div class="fw-bold">@orderCount</div>
+            <div style="font-size:.75rem;color:var(--gray-500)">zleceń</div>
+        </div>
+    </div>
+
+    <form asp-action="Delete" id="deleteForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold">
+                Aby potwierdzić, wpisz
+                <strong>@Model.FullName</strong>
+            </label>
+            <input type="text" id="confirmName" class="form-control"
+                   placeholder="@Model.FullName" autocomplete="off" />
+            <div class="form-text">Wielkość liter nie ma znaczenia.</div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                Anuluj
+            </a>
+            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                🗑 Tak, usuń klienta
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('confirmName').addEventListener('input', function() {
+            var expected = '@Model.FullName'.toLowerCase().trim();
+            var typed = this.value.toLowerCase().trim();
+            document.getElementById('deleteBtn').disabled = (typed !== expected);
+        });
+    </script>
+}

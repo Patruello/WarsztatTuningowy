@@ -1,0 +1,157 @@
+﻿@{
+    ViewData["Title"] = "Logowanie";
+    Layout = null;
+}
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logowanie — Warsztat Tuningowy</title>
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css" />
+    <style>
+            body {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--gray-100);
+            }
+
+            .login-card {
+                width: 100%;
+                max-width: 420px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: var(--shadow-md);
+                padding: 2.5rem;
+            }
+
+            .login-logo {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--gray-900);
+            }
+
+            .login-logo span {
+                color: var(--primary);
+            }
+
+            .demo-account {
+                background: var(--gray-50);
+                border: 1px solid var(--gray-200);
+                border-radius: 8px;
+                padding: 1rem;
+                font-size: .8rem;
+                cursor: pointer;
+                transition: background 0.15s;
+            }
+
+            .demo-account:hover {
+                background: var(--gray-100);
+            }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+
+        <div class="text-center mb-4">
+            <div class="login-logo mb-1">⚙️ Warsztat <span>Tuningowy</span></div>
+            <div class="text-muted" style="font-size:.875rem">
+                System zarządzania warsztatem tuningowym
+            </div>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mb-3">
+                @foreach (var error in ViewData.ModelState.Values
+                    .SelectMany(v => v.Errors))
+                {
+                    <div>@error.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form method="post" asp-action="Login" asp-controller="Account">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl"
+                   value="@ViewBag.ReturnUrl" />
+
+            <div class="mb-3">
+                <label class="form-label">Adres email</label>
+                <input type="email" name="email" class="form-control"
+                       placeholder="twoj@email.pl" autocomplete="username"
+                       required />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Hasło</label>
+                <input type="password" name="password" class="form-control"
+                       placeholder="••••••••" autocomplete="current-password"
+                       required />
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check">
+                    <input type="checkbox" name="rememberMe"
+                           class="form-check-input" id="rememberMe" />
+                    <label class="form-check-label" for="rememberMe">
+                        Zapamiętaj mnie przez 8 godzin
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-4">
+                Zaloguj się →
+            </button>
+        </form>
+
+        <div class="fw-semibold text-muted mb-2"
+             style="font-size:.75rem;letter-spacing:.05em;
+             text-transform:uppercase">
+            Konta demonstracyjne
+        </div>
+        <div class="d-flex flex-column gap-2">
+            <div class="demo-account"
+                 onclick="fillLogin('wlasciciel@warsztat.pl')">
+                <div class="d-flex justify-content-between">
+                    <span>👑 <strong>Właściciel / Doradca</strong></span>
+                    <span class="text-muted">pełny dostęp</span>
+                </div>
+                <div class="text-muted mt-1">wlasciciel@warsztat.pl</div>
+            </div>
+            <div class="demo-account"
+                 onclick="fillLogin('mechanik1@warsztat.pl')">
+                <div class="d-flex justify-content-between">
+                    <span>🔧 <strong>Mechanik / Tuner</strong></span>
+                    <span class="text-muted">zlecenia + timer</span>
+                </div>
+                <div class="text-muted mt-1">mechanik1@warsztat.pl</div>
+            </div>
+            <div class="demo-account"
+                 onclick="fillLogin('magazynier@warsztat.pl')">
+                <div class="d-flex justify-content-between">
+                    <span>📦 <strong>Magazynier</strong></span>
+                    <span class="text-muted">magazyn</span>
+                </div>
+                <div class="text-muted mt-1">magazynier@warsztat.pl</div>
+            </div>
+        </div>
+
+        <div class="text-center text-muted mt-3" style="font-size:.8rem">
+            Hasło do wszystkich kont: <code>Admin123!</code>
+        </div>
+    </div>
+
+    <script>
+            function fillLogin(email) {
+                document.querySelector('input[name="email"]').value = email;
+                document.querySelector('input[name="password"]').value = 'Admin123!';
+            }
+    </script>
+</body>
