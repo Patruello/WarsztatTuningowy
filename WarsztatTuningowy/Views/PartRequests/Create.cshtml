@@ -1,0 +1,228 @@
+﻿@using WarsztatTuningowy.Models.Domain
+@{
+    ViewData["Title"] = "Dodaj część do zlecenia";
+    var order = ViewBag.Order as Order;
+    var parts = ViewBag.Parts as List<Part>;
+    bool isWorkView = Context.Request.Query
+        .ContainsKey("returnToWorkView");
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        @if (User.IsInRole("Mechanic"))
+        {
+            <li class="breadcrumb-item">
+                <a asp-controller="Orders"
+                   asp-action="WorkView"
+                   asp-route-id="@order?.Id">
+                    Zlecenie #@order?.Id
+                </a>
+            </li>
+        }
+        else
+        {
+            <li class="breadcrumb-item">
+                <a asp-controller="Orders"
+                   asp-action="Details"
+                   asp-route-id="@order?.Id">
+                    Zlecenie #@order?.Id
+                </a>
+            </li>
+        }
+        <li class="breadcrumb-item active">Dodaj część</li>
+    </ol>
+</nav>
+
+<div class="page-header">
+    <h1>Dodaj część do zlecenia</h1>
+    <p class="page-subtitle">
+        Zlecenie #@order?.Id —
+        @order?.Vehicle?.Brand @order?.Vehicle?.Model
+        (@order?.Vehicle?.Year)
+    </p>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mb-3">@TempData["Error"]</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header fw-bold">Wybierz część</div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId"
+                           value="@order?.Id" />
+                    <input type="hidden" name="returnToWorkView"
+                           value="@User.IsInRole("Mechanic")
+                    .ToString().ToLower()" />
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            Część z katalogu
+                        </label>
+
+                        <input type="text"
+                               id="partSearch"
+                               class="form-control mb-2"
+                               placeholder="Szukaj części..." />
+
+                        <div style="max-height:320px;overflow-y:auto"
+                             class="border rounded">
+                            @foreach (var part in parts ?? new List<Part>())
+                            {
+                                var inStock = part.Stock > 0;
+                                <label class="d-flex align-items-center
+                                    gap-3 p-3 border-bottom
+                                    part-row"
+                                       style="cursor:pointer">
+                                    <input type="radio"
+                                           name="partId"
+                                           value="@part.Id"
+                                           class="form-check-input mt-0" />
+                                    <div class="flex-fill">
+                                        <div class="fw-semibold
+                                            part-name">
+                                            @part.Name
+                                        </div>
+                                        <small class="text-muted">
+                                            @part.SupplierName
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div style="font-size:.85rem">
+                                            @part.RetailPrice.ToString("C")
+                                        </div>
+                                        <div class="text-muted small mb-2">
+                                            @if (part.IsStockPart)
+                                            {
+                                                @if (part.Stock >= 1)
+                                                {
+                                                    <span class="badge bg-success">Na stanie: @part.Stock szt.</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">Brak</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Na zamówienie</span>
+                                            }
+                                        </div>
+                                        }
+                                    </div>
+                                </label>
+                            }
+                        </div>
+                        <div class="form-text">
+                            🟢 Na stanie — zostanie dodana do zlecenia.
+                            🔴 Brak — zostanie złożone zapotrzebowanie.
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <hr class="flex-fill" />
+                            <span class="text-muted small">lub</span>
+                            <hr class="flex-fill" />
+                        </div>
+                        <label class="form-label fw-semibold">
+                            Wpisz nazwę części której nie ma w katalogu
+                        </label>
+                        <input type="text" name="customPartName"
+                               class="form-control"
+                               placeholder="np. Intercooler Forge Motorsport FMIC" />
+                        <div class="form-text">
+                            Zostanie złożone zapotrzebowanie — magazynier
+                            doda część do katalogu i zamówi.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            Ilość (szt.)
+                        </label>
+                        <input type="number" name="quantity"
+                               class="form-control"
+                               value="1" min="1" max="99" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            Notatka (opcjonalnie)
+                        </label>
+                        <input type="text" name="notes"
+                               class="form-control"
+                               placeholder="np. konkretny producent, specyfikacja..." />
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end
+                        pt-3 border-top">
+                        @if (User.IsInRole("Mechanic"))
+                        {
+                            <a asp-controller="Orders"
+                               asp-action="WorkView"
+                               asp-route-id="@order?.Id"
+                               class="btn btn-outline-secondary">
+                                Anuluj
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Orders"
+                               asp-action="Details"
+                               asp-route-id="@order?.Id"
+                               class="btn btn-outline-secondary">
+                                Anuluj
+                            </a>
+                        }
+                        <button type="submit" class="btn btn-primary">
+                            ✓ Dodaj / Złóż zapotrzebowanie
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header fw-bold">Jak to działa?</div>
+            <div class="card-body">
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-success">Na stanie</span>
+                    <div class="small">
+                        Część zostanie natychmiast dodana do zlecenia.
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-danger">Brak</span>
+                    <div class="small">
+                        Zostanie złożone zapotrzebowanie do magazyniera.
+                        Gdy magazynier oznaczy jako "Gotowe" - część pojawi się w zleceniu automatycznie.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('partSearch')
+            .addEventListener('input', function() {
+                var query = this.value.toLowerCase();
+                document.querySelectorAll('.part-row')
+                    .forEach(function(row) {
+                        var name = row.querySelector('.part-name')
+                            .textContent.toLowerCase();
+                        row.style.display =
+                            name.includes(query) ? '' : 'none';
+                    });
+            });
+    </script>
+}

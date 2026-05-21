@@ -1,51 +1,70 @@
-﻿@model WarsztatTuningowy.Models.Domain.Employee
+﻿@using WarsztatTuningowy.Models.Enums
+@model WarsztatTuningowy.Models.Domain.Employee
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usuń pracownika";
+
+    var orderCount = Model.AssignedOrders.Count();
 }
 
-<h1>Delete</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Pracownicy</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-action="Details" asp-route-id="@Model.Id">
+                @Model.FullName
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Usuń</li>
+    </ol>
+</nav>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Employee</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FullName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FullName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Role)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Role)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HourlyRateInternal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HourlyRateInternal)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HourlyRateClient)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HourlyRateClient)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserId)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
+<div class="delete-confirm-box">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="text-danger fw-bold"
+              style="font-size:.75rem;letter-spacing:.05em">
+            ⚠️ OPERACJA NIEODWRACALNA
+        </span>
+    </div>
+
+    <h4 class="fw-bold mb-2">Usunąć pracownika @Model.FullName?</h4>
+    <p class="text-muted mb-4" style="font-size:.9rem">
+        Pracownik zostanie trwale usunięty z systemu.
+        Historia zadań i zleceń pozostanie w archiwum.
+    </p>
+
+    <div class="p-3 mb-4"
+         style="background:var(--gray-50);border-radius:8px;
+        border:1px solid var(--gray-200)">
+        <div class="d-flex align-items-center gap-3">
+            @await Html.PartialAsync("_Avatar", Model.FullName)
+            <div class="flex-fill">
+                <div class="fw-semibold">@Model.FullName</div>
+                <div class="text-muted small">
+                    @Model.Role.ToString() ·
+                    @Model.HourlyRateClient.ToString("C")/h
+                </div>
+            </div>
+            <div class="text-center px-3">
+                <div class="fw-bold">@orderCount</div>
+                <div style="font-size:.75rem;color:var(--gray-500)">
+                    zleceń
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <div class="d-flex gap-2 justify-content-end">
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">Anuluj</a>
+            <button type="submit" class="btn btn-danger">
+                🗑 Tak, usuń pracownika
+            </button>
+        </div>
     </form>
 </div>

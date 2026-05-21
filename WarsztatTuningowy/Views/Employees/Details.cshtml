@@ -1,48 +1,247 @@
-﻿@model WarsztatTuningowy.Models.Domain.Employee
+﻿@using WarsztatTuningowy.Extensions
+@using WarsztatTuningowy.Models.Enums
+@model WarsztatTuningowy.Models.Domain.Employee
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły pracownika";
+
+    var totalHours = Model.ServiceTasks
+        .Where(st => st.EndTime != null)
+        .Sum(st => st.TotalMinutes / 60m);
+    var activeTask = Model.ServiceTasks
+        .FirstOrDefault(st => st.StartTime != null
+            && st.EndTime == null);
+    var activeOrders = Model.AssignedOrders
+        .Where(o => o.Status != OrderStatus.Completed)
+        .ToList();
 }
 
-<h1>Details</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-action="Index">Pracownicy</a>
+        </li>
+        <li class="breadcrumb-item active">@Model.FullName</li>
+    </ol>
+</nav>
 
-<div>
-    <h4>Employee</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FullName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FullName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Role)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Role)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HourlyRateInternal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HourlyRateInternal)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HourlyRateClient)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HourlyRateClient)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserId)
-        </dd>
-    </dl>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex align-items-center gap-3">
+        @{
+            ViewBag.AvatarSize = "avatar-lg";
+        }
+        @await Html.PartialAsync("_Avatar", Model.FullName)
+        <div>
+            <h1 class="mb-1">@Model.FullName</h1>
+            <span class="badge @(Model.Role == EmployeeRole.Owner ? "bg-primary" : Model.Role == EmployeeRole.Mechanic ? "bg-success" : "bg-secondary") fs-6">
+                @Model.Role.ToString()
+            </span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id"
+           class="btn btn-outline-primary">Edytuj</a>
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">Wróć do listy</a>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+        @TempData["Error"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Dane pracownika</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Stawka wewnętrzna</dt>
+                    <dd class="col-sm-7">
+                        @Model.HourlyRateInternal.ToString("C")/h
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Stawka klienta</dt>
+                    <dd class="col-sm-7">
+                        @Model.HourlyRateClient.ToString("C")/h
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Konto systemowe</dt>
+                    <dd class="col-sm-7">
+                        @if (Model.UserId != null)
+                        {
+                            <span class="badge bg-success">Przypisane</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Brak konta</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Statystyki</div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-4">
+                        <div class="fs-2 fw-bold text-primary">
+                            @totalHours.ToString("F1")
+                        </div>
+                        <div class="text-muted small">
+                            Przepracowanych h
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-2 fw-bold text-success">
+                            @Model.AssignedOrders.Count
+                        </div>
+                        <div class="text-muted small">
+                            Zleceń łącznie
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-2 fw-bold text-warning">
+                            @activeOrders.Count
+                        </div>
+                        <div class="text-muted small">
+                            Aktywnych
+                        </div>
+                    </div>
+                </div>
+
+                @if (activeTask != null)
+                {
+                    <div class="alert alert-warning mt-3 mb-0 py-2">
+                        ⏱ Aktywny timer:
+                        <strong>@activeTask.Name</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (activeOrders.Any())
+{
+    <div class="card mb-4">
+        <div class="card-header fw-bold">Aktywne zlecenia</div>
+        <div class="card-body p-0">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Nr</th>
+                        <th>Pojazd</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in activeOrders)
+                    {
+                        var badgeClass = order.Status switch
+                        {
+                            OrderStatus.Received => "bg-secondary",
+                            OrderStatus.Diagnosis => "bg-info",
+                            OrderStatus.InProgress => "bg-warning text-dark",
+                            OrderStatus.QualityCheck => "bg-primary",
+                            _ => "bg-secondary"
+                        };
+                        <tr>
+                            <td><strong>#@order.Id</strong></td>
+                            <td>
+                                @order.Vehicle?.Brand @order.Vehicle?.Model
+                                <small class="text-muted d-block">
+                                    @order.Vehicle?.Year
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge @badgeClass">
+                                    @order.Status.GetDisplayName()
+                                </span>
+                            </td>
+                            <td>
+                                <a asp-controller="Orders"
+                                   asp-action="Details"
+                                   asp-route-id="@order.Id"
+                                   class="btn-action" title="Szczegóły">
+                                    👁
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header fw-bold">Historia zadań serwisowych</div>
+    <div class="card-body p-0">
+        @if (!Model.ServiceTasks.Any())
+        {
+            <p class="text-muted p-3 mb-0">Brak zadań</p>
+        }
+        else
+        {
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Zadanie</th>
+                        <th>Zlecenie</th>
+                        <th>Czas pracy</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var task in Model.ServiceTasks
+                        .OrderByDescending(st => st.StartTime))
+                    {
+                        <tr>
+                            <td>@task.Name</td>
+                            <td>
+                                <a asp-controller="Orders"
+                                   asp-action="Details"
+                                   asp-route-id="@task.OrderId">
+                                    #@task.OrderId
+                                </a>
+                                <small class="text-muted d-block">
+                                    @task.Order?.Vehicle?.Brand
+                                    @task.Order?.Vehicle?.Model
+                                </small>
+                            </td>
+                            <td>@task.TotalTime</td>
+                            <td>
+                                @if (task.EndTime != null)
+                                {
+                                    <span class="badge bg-success">
+                                        Zakończone
+                                    </span>
+                                }
+                                else if (task.StartTime != null)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        W trakcie
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Nie rozpoczęto
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
 </div>

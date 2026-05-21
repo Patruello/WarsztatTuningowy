@@ -57,7 +57,7 @@
     </div>
 }
 
-<div class="d-flex gap-2 mt-3">
+<div class="d-flex gap-2 my-3">
     <a asp-action="GenerateTuningProtocol" asp-route-id="@Model.Id"
           class="btn btn-outline-success" target="_blank">
         📄 Tuning Protocol PDF
@@ -241,6 +241,23 @@
 <div class="card mb-4">
     <div class="card-header fw-bold">Części</div>
     <div class="card-body p-0">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Części zlecenia</span>
+            @if (Model.DepositPaid)
+            {
+                <a asp-controller="PartRequests" asp-action="Create"
+                   asp-route-orderId="@Model.Id"
+                   class="btn btn-sm btn-primary">
+                    + Dodaj część
+                </a>
+            }
+            else
+            {
+                <span class="badge bg-danger">
+                    🔒 Brak zaliczki
+                </span>
+            }
+        </div>
         @if (!Model.OrderParts.Any())
         {
             <p class="text-muted p-3 mb-0">Brak przypisanych części</p>

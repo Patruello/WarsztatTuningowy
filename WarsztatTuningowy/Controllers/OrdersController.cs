@@ -318,8 +318,8 @@ namespace WarsztatTuningowy.Controllers
             }
 
             return returnToWorkView
-                ? RedirectToAction("WorkView", new { id = orderId })
-                : RedirectToAction("Details", new { id = orderId });
+                ? RedirectToAction("WorkView", "Orders", new { id = orderId })
+                : RedirectToAction("Details", "Orders", new { id = orderId });
         }
 
         // GET: /Orders/GenerateInvoice/5

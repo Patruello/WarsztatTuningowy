@@ -18,12 +18,6 @@ namespace WarsztatTuningowy.Controllers
 
         public IActionResult Index()
         {
-            System.Diagnostics.Debug.WriteLine($"=== INDEX ===");
-            System.Diagnostics.Debug.WriteLine($"IsAuthenticated: {User.Identity?.IsAuthenticated}");
-            System.Diagnostics.Debug.WriteLine($"IsInRole Owner: {User.IsInRole("Owner")}");
-            System.Diagnostics.Debug.WriteLine($"IsInRole Mechanic: {User.IsInRole("Mechanic")}");
-            System.Diagnostics.Debug.WriteLine($"Claims: {string.Join(", ", User.Claims.Select(c => $"{c.Type}={c.Value}"))}");
-
             if (User.IsInRole("Owner"))
                 return RedirectToAction("Owner");
 
@@ -78,6 +72,21 @@ namespace WarsztatTuningowy.Controllers
                 .OrderBy(p => p.Name)
                 .ToListAsync();
 
+            var requests = await _context.PartRequests
+            .Include(pr => pr.Part)
+            .Include(pr => pr.Order)
+                .ThenInclude(o => o.Vehicle)
+            .Include(pr => pr.RequestedByEmployee)
+            .Where(pr => pr.Status != PartRequestStatus.Ready)
+            .OrderBy(pr => pr.CreatedAt)
+            .ToListAsync();
+
+            ViewBag.PartRequests = requests;
+            ViewBag.Parts = await _context.Parts
+                .Where(p => p.Stock > 0)
+                .OrderBy(p => p.Name)
+                .ToListAsync();
+
             return View(parts);
         }
 
@@ -111,7 +120,7 @@ namespace WarsztatTuningowy.Controllers
                 .ToListAsync();
 
             var lowStockParts = await _context.Parts
-                .Where(p => p.Stock <= p.MinStock)
+                .Where(p => p.IsStockPart && p.Stock <= p.MinStock)
                 .OrderBy(p => p.Stock)
                 .ToListAsync();
 

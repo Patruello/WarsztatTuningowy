@@ -17,6 +17,7 @@ namespace WarsztatTuningowy.Data
         public DbSet<WorkstationAssignment> WorkstationAssignments { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<PartRequest> PartRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -60,6 +61,10 @@ namespace WarsztatTuningowy.Data
                 new Workstation { Id = 4, Name = "Detailing", Type = WorkstationType.Detailing, IsOccupied = false },
                 new Workstation { Id = 5, Name = "Spawalnia", Type = WorkstationType.Welding, IsOccupied = false }
             );
+
+            modelBuilder.Entity<PartRequest>()
+                .Property(pr => pr.Status)
+                .HasConversion<string>();
         }
     }
 }

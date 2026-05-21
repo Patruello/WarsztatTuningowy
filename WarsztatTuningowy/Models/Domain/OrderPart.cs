@@ -15,11 +15,19 @@
 
         public bool MarkAsUsed()
         {
-            if (Part == null || Part.Stock < Quantity) 
-                return false;
+            if (IsUsed) return false;
+
+            if (Part == null) return false;
+
+            if (Part.IsStockPart)
+            {
+                if (Part.Stock < Quantity)
+                    return false;
+
+                Part.Stock -= Quantity;
+            }
 
             IsUsed = true;
-            Part.Stock -= Quantity;
             return true;
         }
 

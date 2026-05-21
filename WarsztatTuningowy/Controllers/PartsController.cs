@@ -25,6 +25,7 @@ namespace WarsztatTuningowy.Controllers
         public async Task<IActionResult> Index()
         {
             var parts = await _context.Parts
+                .Include(p => p.OrderParts)
                 .OrderBy(p => p.Name)
                 .ToListAsync();
             return View(parts);
@@ -61,7 +62,7 @@ namespace WarsztatTuningowy.Controllers
         // POST: Parts/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,WholesalePrice,RetailPrice,Stock,MinStock,SupplierName")] Part part)
+        public async Task<IActionResult> Create([Bind("Name,WholesalePrice,RetailPrice,Stock,MinStock,SupplierName,IsStockPart")] Part part)
         {
             if (ModelState.IsValid)
             {
@@ -91,7 +92,7 @@ namespace WarsztatTuningowy.Controllers
         // POST: Parts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,WholesalePrice,RetailPrice,MinStock,SupplierName")] Part part)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,WholesalePrice,RetailPrice,MinStock,SupplierName,IsStockPart")] Part part)
         {
             if (id != part.Id) return NotFound();
 
@@ -105,6 +106,7 @@ namespace WarsztatTuningowy.Controllers
                 existing.RetailPrice = part.RetailPrice;
                 existing.MinStock = part.MinStock;
                 existing.SupplierName = part.SupplierName;
+                existing.IsStockPart = part.IsStockPart;
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id });

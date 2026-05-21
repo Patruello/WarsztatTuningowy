@@ -1,59 +1,147 @@
-﻿@model IEnumerable<WarsztatTuningowy.Models.Domain.Employee>
+﻿@using WarsztatTuningowy.Models.Enums
+@model IEnumerable<WarsztatTuningowy.Models.Domain.Employee>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Pracownicy";
 }
 
-<h1>Index</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Pracownicy</li>
+    </ol>
+</nav>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.FullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Role)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HourlyRateInternal)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HourlyRateClient)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UserId)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Role)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HourlyRateInternal)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HourlyRateClient)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h1>Pracownicy</h1>
+        <p class="page-subtitle">@Model.Count() pracowników w systemie</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">+ Dodaj pracownika</a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+        @TempData["Error"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
 }
-    </tbody>
-</table>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="stat-card">
+            <div class="stat-label">Mechanicy</div>
+            <div class="stat-value text-primary">
+                @Model.Count(e => e.Role == EmployeeRole.Mechanic)
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="stat-card">
+            <div class="stat-label">Magazynierzy</div>
+            <div class="stat-value">
+                @Model.Count(e => e.Role == EmployeeRole.Storekeeper)
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="stat-card">
+            <div class="stat-label">Aktywne zlecenia</div>
+            <div class="stat-value text-warning">
+                @Model.Sum(e => e.AssignedOrders
+                    .Count(o => o.Status != OrderStatus.Completed))
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-modern w-100">
+            <thead>
+                <tr>
+                    <th>Pracownik</th>
+                    <th>Rola</th>
+                    <th>Stawka wewn.</th>
+                    <th>Stawka klienta</th>
+                    <th>Aktywne zlecenia</th>
+                    <th>Konto</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var activeOrders = item.AssignedOrders
+                        .Count(o => o.Status != OrderStatus.Completed);
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                @await Html.PartialAsync("_Avatar",
+                                    item.FullName)
+                                <div class="fw-semibold">
+                                    <a asp-action="Details"
+                                       asp-route-id="@item.Id"
+                                       class="text-decoration-none
+                                        text-dark">
+                                        @item.FullName
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge @(item.Role == EmployeeRole.Owner ? "bg-primary" : item.Role == EmployeeRole.Mechanic ? "bg-success" : "bg-secondary")">
+                                @item.Role.ToString()
+                            </span>
+                        </td>
+                        <td>@item.HourlyRateInternal.ToString("C")/h</td>
+                        <td>@item.HourlyRateClient.ToString("C")/h</td>
+                        <td>
+                            @if (activeOrders > 0)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    @activeOrders aktywnych
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.UserId != null)
+                            {
+                                <span class="badge bg-success">✓</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Brak</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details"
+                                   asp-route-id="@item.Id"
+                                   class="btn-action" title="Szczegóły">
+                                    👁
+                                </a>
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   class="btn-action" title="Edytuj">
+                                    ✏️
+                                </a>
+                                <a asp-action="Delete"
+                                   asp-route-id="@item.Id"
+                                   class="btn-action btn-action-danger"
+                                   title="Usuń">
+                                    🗑
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

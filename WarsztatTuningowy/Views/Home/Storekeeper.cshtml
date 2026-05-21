@@ -1,106 +1,305 @@
-﻿@model IEnumerable<WarsztatTuningowy.Models.Domain.Part>
+﻿@using WarsztatTuningowy.Models.Domain
+@using WarsztatTuningowy.Models.Enums
+@model IEnumerable<WarsztatTuningowy.Models.Domain.Part>
 @{
     ViewData["Title"] = "Magazyn";
+
+    var requests = ViewBag.PartRequests
+        as List<PartRequest> ?? new List<PartRequest>();
+    var pendingCount = requests.Count(r =>
+        r.Status == PartRequestStatus.Pending);
 }
 
-<div class="page-header">
-    <h1>Magazyn części</h1>
-    <p class="page-subtitle">
-        Witaj! Oto aktualny stan magazynu.
-    </p>
-</div>
+<ul class="nav nav-tabs mb-4" id="storeTabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab"
+           href="#magazyn">
+            📦 Magazyn
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab"
+           href="#zapotrzebowania">
+            📋 Zapotrzebowania
+            @if (pendingCount > 0)
+            {
+                <span class="badge bg-danger ms-1">
+                    @pendingCount
+                </span>
+            }
+        </a>
+    </li>
+</ul>
 
-<div class="row g-3 mb-4">
-    <div class="col-sm-4">
-        <div class="stat-card">
-            <div class="stat-label">Wszystkie części</div>
-            <div class="stat-value">@Model.Count()</div>
+<div class="tab-content">
+
+    <div class="tab-pane fade show active" id="magazyn">
+        <div class="page-header">
+            <h1>Magazyn części</h1>
+            <p class="page-subtitle">
+                Witaj! Oto aktualny stan magazynu.
+            </p>
         </div>
-    </div>
-    <div class="col-sm-4">
-        <div class="stat-card">
-            <div class="stat-label">Niski stan</div>
-            <div class="stat-value text-danger">
-                @Model.Count(p => p.IsLowStock())
+
+        <div class="row g-3 mb-4">
+            <div class="col-sm-4">
+                <div class="stat-card">
+                    <div class="stat-label">Wszystkie części</div>
+                    <div class="stat-value">@Model.Count()</div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="stat-card">
+                    <div class="stat-label">Niski stan</div>
+                    <div class="stat-value text-danger">
+                        @Model.Count(p => p.IsLowStock())
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="stat-card">
+                    <div class="stat-label">Wartość magazynu</div>
+                    <div class="stat-value text-primary">
+                        @Model.Sum(p => p.WholesalePrice * p.Stock).ToString("C")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Any(p => p.IsLowStock()))
+        {
+            <div class="alert alert-danger d-flex align-items-center mb-4">
+                <span class="me-2 fs-5">⚠️</span>
+                <div>
+                    <strong>Niski stan magazynu!</strong>
+                    @Model.Count(p => p.IsLowStock()) części wymaga uzupełnienia.
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Stan magazynowy</span>
+                <a asp-controller="Parts" asp-action="Create" class="btn btn-sm btn-primary">+ Dodaj część</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-modern w-100">
+                    <thead>
+                        <tr>
+                            <th>Nazwa części</th>
+                            <th>Stan</th>
+                            <th>Min. stan</th>
+                            <th>Dostawca</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var part in Model.OrderBy(p => p.Stock))
+                        {
+                            <tr class="@(part.IsLowStock() ? "table-danger" : "")">
+                                <td>
+                                    <strong>@part.Name</strong>
+                                    @if (part.IsLowStock())
+                                    {
+                                        <span class="badge bg-danger ms-2">
+                                            Niski stan
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-bold @(part.IsLowStock() ? "text-danger" : "text-success")">
+                                        @part.Stock szt.
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">@part.MinStock szt.</small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">@part.SupplierName</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-controller="Parts" asp-action="StockAdjustment" asp-route-id="@part.Id"
+                                           class="btn-action" title="Korekta stanu">
+                                            📦
+                                        </a>
+                                        <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.Id"
+                                           class="btn-action" title="Szczegóły">
+                                            👁
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
-        <div class="stat-card">
-            <div class="stat-label">Wartość magazynu</div>
-            <div class="stat-value text-primary">
-                @Model.Sum(p => p.WholesalePrice * p.Stock).ToString("C")
+
+    <div class="tab-pane fade" id="zapotrzebowania">
+        @if (!requests.Any())
+        {
+            <div class="card">
+                <div class="card-body text-muted text-center p-4">
+                    Brak zapotrzebowań do realizacji 🎉
+                </div>
             </div>
-        </div>
-    </div>
-</div>
-
-@if (Model.Any(p => p.IsLowStock()))
-{
-    <div class="alert alert-danger d-flex align-items-center mb-4">
-        <span class="me-2 fs-5">⚠️</span>
-        <div>
-            <strong>Niski stan magazynu!</strong>
-            @Model.Count(p => p.IsLowStock()) części wymaga uzupełnienia.
-        </div>
-    </div>
-}
-
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span class="fw-bold">Stan magazynowy</span>
-        <a asp-controller="Parts" asp-action="Create" class="btn btn-sm btn-primary">+ Dodaj część</a>
-    </div>
-    <div class="card-body p-0">
-        <table class="table table-modern w-100">
-            <thead>
-                <tr>
-                    <th>Nazwa części</th>
-                    <th>Stan</th>
-                    <th>Min. stan</th>
-                    <th>Dostawca</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var part in Model.OrderBy(p => p.Stock))
-                {
-                    <tr class="@(part.IsLowStock() ? "table-danger" : "")">
-                        <td>
-                            <strong>@part.Name</strong>
-                            @if (part.IsLowStock())
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>Zlecenie</th>
+                                <th>Pojazd</th>
+                                <th>Część</th>
+                                <th>Ilość</th>
+                                <th>Mechanik</th>
+                                <th>Status</th>
+                                <th>Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var req in requests)
                             {
-                                <span class="badge bg-danger ms-2">
-                                    Niski stan
-                                </span>
+                                var statusBadge = req.Status switch
+                                {
+                                    PartRequestStatus.Pending =>
+                                        "bg-warning text-dark",
+                                    PartRequestStatus.Ordered =>
+                                        "bg-info",
+                                    PartRequestStatus.Ready =>
+                                        "bg-success",
+                                    _ => "bg-secondary"
+                                };
+                                var statusLabel = req.Status switch
+                                {
+                                    PartRequestStatus.Pending =>
+                                        "Oczekuje",
+                                    PartRequestStatus.Ordered =>
+                                        "Zamówione",
+                                    PartRequestStatus.Ready =>
+                                        "Gotowe",
+                                    _ => "—"
+                                };
+                                <tr>
+                                    <td>
+                                        <strong>#@req.OrderId</strong>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            @req.Order?.Vehicle?.Brand
+                                            @req.Order?.Vehicle?.Model
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">
+                                            @req.DisplayName
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(
+                                            req.Notes))
+                                        {
+                                            <small class="text-muted">
+                                                @req.Notes
+                                            </small>
+                                        }
+                                        @if (req.PartId == null)
+                                        {
+                                            <span class="badge
+                                                bg-secondary ms-1"
+                                                  style="font-size:.7rem">
+                                                Brak w katalogu
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>@req.Quantity szt.</td>
+                                    <td>
+                                        <small>
+                                            @(req.RequestedByEmployee?.FullName
+                                                ?? "—")
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge @statusBadge">
+                                            @statusLabel
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            @if (req.Status ==
+                                                PartRequestStatus.Pending)
+                                            {
+                                                <form asp-controller="PartRequests"
+                                                      asp-action="UpdateStatus"
+                                                      method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@req.Id" />
+                                                    <input type="hidden"
+                                                           name="newStatus"
+                                                           value="Ordered" />
+                                                    <button type="submit"
+                                                            class="btn btn-sm
+                                                        btn-outline-info">
+                                                        Zamów
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if (req.Status !=
+                                                PartRequestStatus.Ready)
+                                            {
+                                                <form asp-controller="PartRequests"
+                                                      asp-action="UpdateStatus"
+                                                      method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@req.Id" />
+                                                    <input type="hidden"
+                                                           name="newStatus"
+                                                           value="Ready" />
+                                                    <button type="submit"
+                                                            class="btn btn-sm
+                                                        btn-outline-success">
+                                                        Gotowe
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if (req.PartId == null && req.Status != PartRequestStatus.Ready)
+                                            {
+                                                <form asp-controller="PartRequests"
+                                                      asp-action="AssignPart" method="post"
+                                                      class="d-flex gap-1 mt-1">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@req.Id" />
+                                                    <select name="partId" class="form-select form-select-sm">
+                                                        @foreach (var p in ViewBag.Parts as
+                                                            List<WarsztatTuningowy.Models.Domain.Part>
+                                                            ?? new())
+                                                        {
+                                                            <option value="@p.Id">
+                                                                @p.Name (@p.Stock szt.)
+                                                            </option>
+                                                        }
+                                                    </select>
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-primary text-nowrap">
+                                                        Przypisz część
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
                             }
-                        </td>
-                        <td>
-                            <span class="fw-bold @(part.IsLowStock()? "text-danger" : "text-success")">
-                                @part.Stock szt.
-                            </span>
-                        </td>
-                        <td>
-                            <small class="text-muted">@part.MinStock szt.</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">@part.SupplierName</small>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a asp-controller="Parts" asp-action="StockAdjustment" asp-route-id="@part.Id"
-                                   class="btn-action" title="Korekta stanu">
-                                    📦
-                                </a>
-                                <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.Id"
-                                   class="btn-action" title="Szczegóły">
-                                    👁
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
     </div>
 </div>

@@ -72,6 +72,7 @@
                     <th>Cena hurt.</th>
                     <th>Cena detal.</th>
                     <th>Marża</th>
+                    <th>Typ cześci</th>
                     <th>Stan</th>
                     <th>Min. stan</th>
                     <th>Dostawca</th>
@@ -99,9 +100,25 @@
                             </span>
                         </td>
                         <td>
+                            @if (item.IsStockPart)
+                            {
+                                <span class="badge bg-primary">Magazynowa</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Na zamówienie</span>
+                            }
+                        </td>
+                        <td>
                             <span class="@(item.IsLowStock() ? "fw-bold text-danger" : "")">
                                 @item.Stock szt.
                             </span>
+                            @if (item.ReservedQuantity > 0)
+                            {
+                                <small class="text-muted d-block">
+                                    @item.ReservedQuantity zarezerwowane
+                                </small>
+                            }
                         </td>
                         <td>@item.MinStock szt.</td>
                         <td>

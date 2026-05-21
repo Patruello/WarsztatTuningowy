@@ -31,9 +31,11 @@ namespace WarsztatTuningowy.Models.Domain
         [MaxLength(200, ErrorMessage = "Nazwa dostawcy nie może być dłuższa niż 200 znaków")]
         [Display(Name = "Dostawca")]
         public string SupplierName { get; set; } = string.Empty;
+        [Display(Name = "Część magazynowa")]
+        public bool IsStockPart { get; set; } = true;
         public ICollection<OrderPart> OrderParts { get; set; } = new List<OrderPart>();
 
-        public bool IsLowStock() => Stock < MinStock;
+        public bool IsLowStock() => IsStockPart && Stock < MinStock;
 
         public decimal Margin() => RetailPrice - WholesalePrice;
 
@@ -45,5 +47,14 @@ namespace WarsztatTuningowy.Models.Domain
             Stock += quantity;
             return true;
         }
+
+        public int ReservedQuantity =>
+            OrderParts
+                .Where(op => !op.IsUsed)
+                .Sum(op => op.Quantity);
+
+        public int AvailableStock => Stock - ReservedQuantity;
+
+        public bool CanReserve(int quantity) => AvailableStock >= quantity;
     }
 }

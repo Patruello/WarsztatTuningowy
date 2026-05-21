@@ -186,7 +186,8 @@ namespace WarsztatTuningowy.Data
                     RetailPrice = 3100,
                     Stock = 2,
                     MinStock = 1,
-                    SupplierName = "Wagner Tuning PL"
+                    SupplierName = "Wagner Tuning PL",
+                    IsStockPart = false
                 },
                 new() {
                     Name = "Wydech Milltek Sport Non-Res",
@@ -194,7 +195,8 @@ namespace WarsztatTuningowy.Data
                     RetailPrice = 5200,
                     Stock = 1,
                     MinStock = 1,
-                    SupplierName = "Milltek Sport"
+                    SupplierName = "Milltek Sport",
+                    IsStockPart = false
                 },
                 new() {
                     Name = "Filtr powietrza K&N 57i",
@@ -202,7 +204,8 @@ namespace WarsztatTuningowy.Data
                     RetailPrice = 490,
                     Stock = 5,
                     MinStock = 2,
-                    SupplierName = "K&N Filters"
+                    SupplierName = "K&N Filters",
+                    IsStockPart = true
                 },
                 new() {
                     Name = "Olej Motul 5W40 8100 X-Cess 5L",
@@ -210,7 +213,8 @@ namespace WarsztatTuningowy.Data
                     RetailPrice = 160,
                     Stock = 18,
                     MinStock = 5,
-                    SupplierName = "Motul Polska"
+                    SupplierName = "Motul Polska",
+                    IsStockPart = true
                 },
                 new() {
                     Name = "Downpipe 3\" bez katalizatora",
@@ -218,7 +222,8 @@ namespace WarsztatTuningowy.Data
                     RetailPrice = 1350,
                     Stock = 0,
                     MinStock = 1,
-                    SupplierName = "Fabspeed Motorsport"
+                    SupplierName = "Fabspeed Motorsport",
+                    IsStockPart = false
                 },
                 new() {
                     Name = "Turbo Garrett GTX3076R Gen2",
@@ -226,7 +231,8 @@ namespace WarsztatTuningowy.Data
                     RetailPrice = 9800,
                     Stock = 1,
                     MinStock = 1,
-                    SupplierName = "Garrett Motion"
+                    SupplierName = "Garrett Motion",
+                    IsStockPart = false
                 },
                 new() {
                     Name = "Wtryskiwacze Bosch 1000cc (kpl. 6)",
@@ -234,7 +240,8 @@ namespace WarsztatTuningowy.Data
                     RetailPrice = 2600,
                     Stock = 1,
                     MinStock = 2,
-                    SupplierName = "Bosch Motorsport"
+                    SupplierName = "Bosch Motorsport",
+                    IsStockPart = false
                 }
             };
             context.Parts.AddRange(parts);
