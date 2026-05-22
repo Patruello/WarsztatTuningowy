@@ -23,5 +23,7 @@ namespace WarsztatTuningowy.Models.ViewModels
         public List<Employee> Mechanics { get; set; } = new();
 
         public List<Order> RecentOrders { get; set; } = new();
+
+        public int OvertimeOrdersCount { get; set; }
     }
 }

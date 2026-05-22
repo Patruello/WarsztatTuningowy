@@ -31,8 +31,10 @@ namespace WarsztatTuningowy.Models.Domain
         [NotMapped]
         public decimal VatRate => NetAmount > 0 ? VatAmount / NetAmount : 0;
 
-        [NotMapped]
-        public string FormattedNumber => $"FV/{IssuedAt:yyyy/MM}/{Id:D4}";
+        public void AssignNumber()
+        {
+            Number = $"FV/{IssuedAt:yyyy/MM}/{Id:D4}";
+        }
 
 
         public void GenerateFromOrder(Order order, decimal vatRate = 0.23m)
@@ -42,11 +44,22 @@ namespace WarsztatTuningowy.Models.Domain
             GrossAmount = NetAmount + VatAmount;
         }
 
+        public static string CsvHeader() => "Numer faktury;Data wystawienia;Klient;Netto (zł);VAT (zł);Brutto (zł)";
+
         public string ExportToCsv()
         {
-            return $"{FormattedNumber},{IssuedAt:yyyy-MM-dd}," +
-                   $"{Order.Vehicle.Client.FullName}," +
-                   $"{NetAmount},{VatAmount},{GrossAmount}";
+            return $"{Number};{IssuedAt:yyyy-MM-dd};" +
+                   $"{Order.Vehicle.Client.FullName};" +
+                   $"{NetAmount};{VatAmount};{GrossAmount}";
+        }
+
+        public static string ExportAllToCsv(IEnumerable<Invoice> invoices)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine(CsvHeader());
+            foreach (var invoice in invoices)
+                sb.AppendLine(invoice.ExportToCsv());
+            return sb.ToString();
         }
     }
 }

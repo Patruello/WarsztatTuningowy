@@ -14,6 +14,9 @@
         OrderStatus.Completed => "bg-success",
         _ => "bg-secondary"
     };
+
+    var hasAnyParts = Model.OrderParts.Any() || Model.PartRequests.Any();
+    var isReady = Model.IsReadyForTuning();
 }
 
 <nav aria-label="breadcrumb">
@@ -52,6 +55,49 @@
                 @Model.Status.GetDisplayName()
             </span>
         </h1>
+
+        @if (hasAnyParts)
+        {
+            @if (!isReady)
+            {
+                <div class="alert alert-warning d-flex align-items-center mt-3">
+                    <span class="me-2">⏳</span>
+                    <div>
+                        <strong>Oczekuje na części</strong>
+                        <small class="d-block text-muted">
+                            Nie wszystkie zapotrzebowania są zrealizowane
+                            lub brakuje części na stanie.
+                        </small>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-success d-flex align-items-center mt-3">
+                    <span class="me-2">✓</span>
+                    <div>
+                        <strong>Gotowy do tuningu</strong>
+                        <small class="d-block">
+                            Wszystkie części są dostępne.
+                        </small>
+                    </div>
+                </div>
+            }
+        }
+
+        @if (Model.IsOverTime)
+        {
+            <div class="alert alert-danger d-flex align-items-center mb-4">
+                <span class="me-2">⏰</span>
+                <div>
+                    <strong>Przekroczony czas!</strong>
+                    Szacowany: @Model.EstimatedHours h ·
+                    Rzeczywisty: @Model.ActualHours.ToString("F1") h ·
+                    Przekroczenie: @Model.OvertimeHours.ToString("F1") h
+                </div>
+            </div>
+        }
+
         <small class="text-muted">
             @Model.Vehicle?.Brand @Model.Vehicle?.Model
             (@Model.Vehicle?.Year) ·

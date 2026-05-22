@@ -83,7 +83,7 @@ namespace WarsztatTuningowy.Services
                     row.RelativeItem().Text(text =>
                     {
                         text.Span("Numer faktury: ").Bold();
-                        text.Span(invoice.FormattedNumber);
+                        text.Span(invoice.Number);
                     });
                     row.RelativeItem().AlignRight().Text(text =>
                     {

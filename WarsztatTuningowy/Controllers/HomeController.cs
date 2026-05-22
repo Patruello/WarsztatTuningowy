@@ -53,6 +53,9 @@ namespace WarsztatTuningowy.Controllers
                     .ThenInclude(v => v.Client)
                 .Include(o => o.ServiceTasks)
                     .ThenInclude(st => st.AssignedEmployee)
+                .Include(o => o.PartRequests)
+                .Include(o => o.OrderParts)
+                    .ThenInclude(op => op.Part)
                 .Where(o => o.DefaultMechanicId == employee.Id
                     || o.ServiceTasks.Any(st =>
                         st.AssignedEmployeeId == employee.Id))
@@ -149,7 +152,8 @@ namespace WarsztatTuningowy.Controllers
                 RecentOrders = allOrders
                     .OrderByDescending(o => o.CreatedAt)
                     .Take(5)
-                    .ToList()
+                    .ToList(),
+                OvertimeOrdersCount = activeOrders.Count(o => o.IsOverTime)
             };
         }
     }

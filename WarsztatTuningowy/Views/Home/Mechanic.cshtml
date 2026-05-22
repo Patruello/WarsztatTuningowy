@@ -94,10 +94,27 @@
                                     @order.TuningGoal.GetDisplayName()
                                 </small>
                             </td>
+                            @{
+                                var hasAnyParts = order.OrderParts.Any()
+                                    || order.PartRequests.Any();
+                            }
                             <td>
                                 <span class="badge @badgeClass">
                                     @order.Status.GetDisplayName()
                                 </span>
+
+                                @if (hasAnyParts && !order.IsReadyForTuning())
+                                {
+                                    <span class="badge bg-warning text-dark mt-1">
+                                        ⏳ Oczekuje na części
+                                    </span>
+                                }
+                                else if (order.IsReadyForTuning())
+                                {
+                                    <span class="badge bg-success mt-1">
+                                        ✓ Gotowy do tuningu
+                                    </span>
+                                }
                             </td>
                             <td>
                                 @if (activeTask != null)

@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using WarsztatTuningowy.Data;
 using WarsztatTuningowy.Models.Domain;
 using WarsztatTuningowy.Models.Enums;
@@ -28,7 +29,14 @@ namespace WarsztatTuningowy.Controllers
         // GET: Orders
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Orders.Include(o => o.Vehicle).ThenInclude(v => v.Client).Include(o => o.DefaultMechanic).OrderByDescending(o => o.CreatedAt);
+            var applicationDbContext = _context.Orders
+                .Include(o => o.Vehicle)
+                    .ThenInclude(v => v.Client)
+                .Include(o => o.DefaultMechanic)
+                .Include(o => o.PartRequests)
+                .Include(o => o.OrderParts)
+                    .ThenInclude(op => op.Part)
+                .OrderByDescending(o => o.CreatedAt);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -50,6 +58,7 @@ namespace WarsztatTuningowy.Controllers
                     .ThenInclude(op => op.Part)
                 .Include(o => o.WorkstationAssignments)
                     .ThenInclude(wa => wa.Workstation)
+                .Include(o => o.PartRequests)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (order == null)
@@ -283,6 +292,7 @@ namespace WarsztatTuningowy.Controllers
                     .ThenInclude(op => op.Part)
                 .Include(o => o.WorkstationAssignments)
                     .ThenInclude(wa => wa.Workstation)
+                .Include(o => o.PartRequests)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (order == null) return NotFound();
@@ -337,6 +347,12 @@ namespace WarsztatTuningowy.Controllers
 
             if (order == null) return NotFound();
 
+            if (order.Status != OrderStatus.QualityCheck && order.Status != OrderStatus.Completed)
+            {
+                TempData["Error"] = "Fakturę można wygenerować tylko dla zleceń w statusie Kontrola jakości lub Zakończone.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
             var invoice = await _context.Invoices
                 .Include(i => i.Order)
                     .ThenInclude(o => o.Vehicle)
@@ -354,6 +370,9 @@ namespace WarsztatTuningowy.Controllers
                 invoice.GenerateFromOrder(order);
                 _context.Invoices.Add(invoice);
                 await _context.SaveChangesAsync();
+
+                invoice.AssignNumber();
+                await _context.SaveChangesAsync();
             }
 
             invoice.Order = order;
@@ -361,7 +380,7 @@ namespace WarsztatTuningowy.Controllers
             var pdf = _pdfService.GenerateInvoice(invoice);
 
             return File(pdf, "application/pdf",
-                $"Faktura_{invoice.FormattedNumber.Replace("/", "-")}.pdf");
+                $"Faktura_{invoice.Number.Replace("/", "-")}.pdf");
         }
 
         // GET: /Orders/GenerateTuningProtocol/5
@@ -383,6 +402,25 @@ namespace WarsztatTuningowy.Controllers
 
             return File(pdf, "application/pdf",
                 $"TuningProtocol_Zlecenie{id}.pdf");
+        }
+
+        // GET: /Orders/ExportInvoicesCsv
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> ExportInvoicesCsv()
+        {
+            var invoices = await _context.Invoices
+                .Include(i => i.Order)
+                    .ThenInclude(o => o.Vehicle)
+                        .ThenInclude(v => v.Client)
+                .OrderByDescending(i => i.IssuedAt)
+                .ToListAsync();
+
+            var csv = "sep=;\r\n" + Invoice.ExportAllToCsv(invoices);
+            var encoding = System.Text.Encoding.GetEncoding("windows-1250");
+            var bytes = encoding.GetBytes(csv);
+
+            return File(bytes, "text/csv",
+                $"faktury_{DateTime.Now:yyyy-MM-dd}.csv");
         }
     }
 }

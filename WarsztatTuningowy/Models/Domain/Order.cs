@@ -32,7 +32,15 @@ namespace WarsztatTuningowy.Models.Domain
         public ICollection<ServiceTask> ServiceTasks { get; set; } = new List<ServiceTask>();
         public ICollection<OrderPart> OrderParts { get; set; } = new List<OrderPart>();
         public ICollection<WorkstationAssignment> WorkstationAssignments { get; set; } = new List<WorkstationAssignment>();
+        public ICollection<PartRequest> PartRequests { get; set; } = new List<PartRequest>();
         public Invoice? Invoice { get; set; }
+
+        [NotMapped]
+        public decimal ActualHours => ServiceTasks.Sum(st => st.TotalMinutes) / 60.0m;
+        [NotMapped]
+        public bool IsOverTime => ActualHours > EstimatedHours;
+        [NotMapped]
+        public decimal OvertimeHours => Math.Max(0, ActualHours - EstimatedHours);
 
         public decimal TotalWorkshopCost()
         {
@@ -71,7 +79,12 @@ namespace WarsztatTuningowy.Models.Domain
 
         public bool IsReadyForTuning()
         {
-            return OrderParts.Where(op => op.IsUsed).All(op => op.Part != null && op.Part.Stock >= op.Quantity);
+            if (PartRequests.Any(pr => pr.Status != PartRequestStatus.Ready)) return false;
+
+            return OrderParts
+                .Where(op => !op.IsUsed)
+                .All(op => op.Part != null 
+                    && (!op.Part.IsStockPart || op.Part.Stock >= op.Quantity));
         }
 
         public static bool IsValidTuningGoal(TuningGoal goal)
