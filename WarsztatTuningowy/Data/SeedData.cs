@@ -119,6 +119,12 @@ namespace WarsztatTuningowy.Data
                     Phone = "605 678 901",
                     Email = "r.szymanski@gmail.com",
                     CreatedAt = DateTime.Now.AddMonths(-1)
+                },
+                new() {
+                    FullName = "Michał Kamiński",
+                    Phone = "606 789 012",
+                    Email = "m.kaminski@gmail.com",
+                    CreatedAt = DateTime.Now.AddDays(-5)
                 }
             };
             context.Clients.AddRange(clients);
@@ -173,6 +179,14 @@ namespace WarsztatTuningowy.Data
                     EngineType = "3.0 TwinPower Turbo 306KM",
                     ECUType = "Bosch MSD80",
                     ClientId = clients[0].Id
+                },
+                new() {
+                    VIN = "WVWZZZAUZKW123456",
+                    Brand = "Volkswagen", Model = "Golf R",
+                    Year = 2021,
+                    EngineType = "2.0 TSI 320KM",
+                    ECUType = "Bosch MG1CS011",
+                    ClientId = clients[5].Id
                 }
             };
             context.Vehicles.AddRange(vehicles);
@@ -242,6 +256,60 @@ namespace WarsztatTuningowy.Data
                     MinStock = 2,
                     SupplierName = "Bosch Motorsport",
                     IsStockPart = false
+                },
+                new() {
+                    Name = "Świece NGK Racing R7437-9",
+                    WholesalePrice = 420,
+                    RetailPrice = 690,
+                    Stock = 20,
+                    MinStock = 4,
+                    SupplierName = "NGK Motorsport",
+                    IsStockPart = true
+                },
+                new() {
+                    Name = "Klocki hamulcowe Ferodo DS2500",
+                    WholesalePrice = 760,
+                    RetailPrice = 1150,
+                    Stock = 3,
+                    MinStock = 2,
+                    SupplierName = "Ferodo Racing",
+                    IsStockPart = true
+                },
+                new() {
+                    Name = "Przewody hamulcowe HEL Performance",
+                    WholesalePrice = 360,
+                    RetailPrice = 590,
+                    Stock = 2,
+                    MinStock = 1,
+                    SupplierName = "HEL Performance",
+                    IsStockPart = true
+                },
+                new() {
+                    Name = "Pompa paliwa Walbro 450",
+                    WholesalePrice = 520,
+                    RetailPrice = 820,
+                    Stock = 2,
+                    MinStock = 1,
+                    SupplierName = "Walbro",
+                    IsStockPart = true
+                },
+                new() {
+                    Name = "Zestaw poliuretanów Strongflex",
+                    WholesalePrice = 980,
+                    RetailPrice = 1450,
+                    Stock = 1,
+                    MinStock = 1,
+                    SupplierName = "Strongflex",
+                    IsStockPart = false
+                },
+                new() {
+                    Name = "Folia PPF matowa dach + słupki",
+                    WholesalePrice = 700,
+                    RetailPrice = 1300,
+                    Stock = 1,
+                    MinStock = 1,
+                    SupplierName = "3M Automotive",
+                    IsStockPart = false
                 }
             };
             context.Parts.AddRange(parts);
@@ -256,7 +324,12 @@ namespace WarsztatTuningowy.Data
                     DepositPaid = true,
                     CreatedAt = DateTime.Now.AddDays(-1),
                     VehicleId = vehicles[0].Id,
-                    DefaultMechanicId = mech1.Id
+                    DefaultMechanicId = mech1.Id,
+                    ModificationScopeAccepted = true,
+                    LegalConsequencesAccepted = true,
+                    WarrantyLossAccepted = true,
+                    StatementAcceptedAt = DateTime.Now.AddDays(-1).AddHours(1),
+                    StatementAcceptedBy = clients[0].FullName
                 },
                 new() {
                     TuningGoal = TuningGoal.Stage1,
@@ -265,7 +338,12 @@ namespace WarsztatTuningowy.Data
                     DepositPaid = true,
                     CreatedAt = DateTime.Now.AddDays(-3),
                     VehicleId = vehicles[1].Id,
-                    DefaultMechanicId = mech2.Id
+                    DefaultMechanicId = mech2.Id,
+                    ModificationScopeAccepted = true,
+                    LegalConsequencesAccepted = true,
+                    WarrantyLossAccepted = true,
+                    StatementAcceptedAt = DateTime.Now.AddDays(-3).AddHours(2),
+                    StatementAcceptedBy = clients[1].FullName
                 },
                 new() {
                     TuningGoal = TuningGoal.Stage3 | TuningGoal.Mechanical,
@@ -274,16 +352,26 @@ namespace WarsztatTuningowy.Data
                     DepositPaid = true,
                     CreatedAt = DateTime.Now.AddDays(-7),
                     VehicleId = vehicles[2].Id,
-                    DefaultMechanicId = mech3.Id
+                    DefaultMechanicId = mech3.Id,
+                    ModificationScopeAccepted = true,
+                    LegalConsequencesAccepted = true,
+                    WarrantyLossAccepted = true,
+                    StatementAcceptedAt = DateTime.Now.AddDays(-7).AddHours(1),
+                    StatementAcceptedBy = clients[2].FullName
                 },
                 new() {
                     TuningGoal = TuningGoal.Visual,
                     Status = OrderStatus.QualityCheck,
                     EstimatedHours = 6,
-                    DepositPaid = false,
+                    DepositPaid = true,
                     CreatedAt = DateTime.Now.AddDays(-10),
                     VehicleId = vehicles[3].Id,
-                    DefaultMechanicId = mech1.Id
+                    DefaultMechanicId = mech1.Id,
+                    ModificationScopeAccepted = true,
+                    LegalConsequencesAccepted = true,
+                    WarrantyLossAccepted = true,
+                    StatementAcceptedAt = DateTime.Now.AddDays(-10).AddHours(3),
+                    StatementAcceptedBy = clients[3].FullName
                 },
                 new() {
                     TuningGoal = TuningGoal.Stage1 | TuningGoal.Mechanical,
@@ -292,7 +380,12 @@ namespace WarsztatTuningowy.Data
                     DepositPaid = true,
                     CreatedAt = DateTime.Now.AddDays(-20),
                     VehicleId = vehicles[4].Id,
-                    DefaultMechanicId = mech2.Id
+                    DefaultMechanicId = mech2.Id,
+                    ModificationScopeAccepted = true,
+                    LegalConsequencesAccepted = true,
+                    WarrantyLossAccepted = true,
+                    StatementAcceptedAt = DateTime.Now.AddDays(-20).AddHours(1),
+                    StatementAcceptedBy = clients[4].FullName
                 },
                 new() {
                     TuningGoal = TuningGoal.Stage2,
@@ -302,6 +395,15 @@ namespace WarsztatTuningowy.Data
                     CreatedAt = DateTime.Now.AddDays(-5),
                     VehicleId = vehicles[5].Id,
                     DefaultMechanicId = mech1.Id
+                },
+                new() {
+                    TuningGoal = TuningGoal.Stage1,
+                    Status = OrderStatus.Received,
+                    EstimatedHours = 5,
+                    DepositPaid = false,
+                    CreatedAt = DateTime.Now,
+                    VehicleId = vehicles[6].Id,
+                    DefaultMechanicId = mech2.Id
                 }
             };
             context.Orders.AddRange(orders);
@@ -310,13 +412,47 @@ namespace WarsztatTuningowy.Data
             var serviceTasks = new List<ServiceTask>
             {
                 new() {
-                    Name = "Montaż intercoolera Wagner EVO2",
+                    Name = "Pre-scan DTC i zapis logów bazowych",
                     OrderId = orders[0].Id,
                     AssignedEmployeeId = mech1.Id,
-                    Notes = null
+                    StartTime = DateTime.Now.AddHours(-7),
+                    EndTime = DateTime.Now.AddHours(-6),
+                    PausedMinutes = 0,
+                    Notes = $"[{DateTime.Now.AddHours(-6):dd.MM.yyyy HH:mm}] " +
+                            "Brak aktywnych błędów. Logi bazowe zapisane."
+                },
+                new() {
+                    Name = "Demontaż zderzaka i przygotowanie pod intercooler",
+                    OrderId = orders[0].Id,
+                    AssignedEmployeeId = mech1.Id
+                },
+                new() {
+                    Name = "Montaż intercoolera Wagner EVO2",
+                    OrderId = orders[0].Id,
+                    AssignedEmployeeId = mech1.Id
                 },
                 new() {
                     Name = "Diagnostyka ECU i odczyt kodów DTC",
+                    OrderId = orders[1].Id,
+                    AssignedEmployeeId = mech2.Id,
+                    StartTime = DateTime.Now.AddDays(-2).AddHours(-4),
+                    EndTime = DateTime.Now.AddDays(-2).AddHours(-2),
+                    PausedMinutes = 10,
+                    Notes = $"[{DateTime.Now.AddDays(-2).AddHours(-2):dd.MM.yyyy HH:mm}] " +
+                            "Wykryto sporadyczny błąd sondy lambda. Do obserwacji."
+                },
+                new() {
+                    Name = "Kontrola szczelności dolotu",
+                    OrderId = orders[1].Id,
+                    AssignedEmployeeId = mech2.Id,
+                    StartTime = DateTime.Now.AddDays(-1).AddHours(-5),
+                    EndTime = DateTime.Now.AddDays(-1).AddHours(-4),
+                    PausedMinutes = 0,
+                    Notes = $"[{DateTime.Now.AddDays(-1).AddHours(-4):dd.MM.yyyy HH:mm}] " +
+                            "Dolot szczelny, przepływomierz pracuje stabilnie."
+                },
+                new() {
+                    Name = "Przygotowanie mapy Stage 1",
                     OrderId = orders[1].Id,
                     AssignedEmployeeId = mech2.Id
                 },
@@ -340,12 +476,49 @@ namespace WarsztatTuningowy.Data
                             "Wtryskiwacze zamontowane. Moment dokręcenia 20Nm."
                 },
                 new() {
+                    Name = "Montaż pompy paliwa Walbro 450",
+                    OrderId = orders[2].Id,
+                    AssignedEmployeeId = mech3.Id,
+                    StartTime = DateTime.Now.AddDays(-1).AddHours(-5),
+                    EndTime = DateTime.Now.AddDays(-1).AddHours(-2),
+                    PausedMinutes = 20,
+                    Notes = $"[{DateTime.Now.AddDays(-1).AddHours(-2):dd.MM.yyyy HH:mm}] " +
+                            "Ciśnienie paliwa po montażu stabilne."
+                },
+                new() {
+                    Name = "Strojenie na hamowni Stage 3",
+                    OrderId = orders[2].Id,
+                    AssignedEmployeeId = mech3.Id,
+                    StartTime = DateTime.Now.AddHours(-5),
+                    PausedMinutes = 10,
+                    Notes = $"[{DateTime.Now.AddHours(-3):dd.MM.yyyy HH:mm}] " +
+                            "Trwa korekta zapłonu i dawki paliwa pod wyższe doładowanie."
+                },
+                new() {
                     Name = "Oklejanie dachu folią matową",
                     OrderId = orders[3].Id,
                     AssignedEmployeeId = mech1.Id,
                     StartTime = DateTime.Now.AddDays(-3),
                     EndTime = DateTime.Now.AddDays(-3).AddHours(5),
                     PausedMinutes = 0
+                },
+                new() {
+                    Name = "Detailing przygotowawczy i odtłuszczenie lakieru",
+                    OrderId = orders[3].Id,
+                    AssignedEmployeeId = mech1.Id,
+                    StartTime = DateTime.Now.AddDays(-4).AddHours(-3),
+                    EndTime = DateTime.Now.AddDays(-4).AddHours(-1),
+                    PausedMinutes = 0
+                },
+                new() {
+                    Name = "Kontrola jakości aplikacji folii",
+                    OrderId = orders[3].Id,
+                    AssignedEmployeeId = mech1.Id,
+                    StartTime = DateTime.Now.AddHours(-4),
+                    EndTime = DateTime.Now.AddHours(-3),
+                    PausedMinutes = 0,
+                    Notes = $"[{DateTime.Now.AddHours(-3):dd.MM.yyyy HH:mm}] " +
+                            "Brak pęcherzy, krawędzie zabezpieczone."
                 },
                 new() {
                     Name = "Chiptuning Stage 1 + downpipe",
@@ -358,9 +531,41 @@ namespace WarsztatTuningowy.Data
                             "Mapa Stage 1 załadowana. Wyniki hamowni: +48KM / +72Nm."
                 },
                 new() {
+                    Name = "Wymiana oleju i świec po strojeniu",
+                    OrderId = orders[4].Id,
+                    AssignedEmployeeId = mech2.Id,
+                    StartTime = DateTime.Now.AddDays(-19).AddHours(-4),
+                    EndTime = DateTime.Now.AddDays(-19).AddHours(-2),
+                    PausedMinutes = 0
+                },
+                new() {
+                    Name = "Jazda próbna i kontrola logów",
+                    OrderId = orders[4].Id,
+                    AssignedEmployeeId = mech2.Id,
+                    StartTime = DateTime.Now.AddDays(-19).AddHours(-2),
+                    EndTime = DateTime.Now.AddDays(-19),
+                    PausedMinutes = 0,
+                    Notes = $"[{DateTime.Now.AddDays(-19):dd.MM.yyyy HH:mm}] " +
+                            "Auto wydane klientowi. Brak knock correction."
+                },
+                new() {
                     Name = "Flashowanie ECU Stage 2",
                     OrderId = orders[5].Id,
-                    AssignedEmployeeId = mech1.Id
+                    AssignedEmployeeId = mech1.Id,
+                    StartTime = DateTime.Now.AddHours(-8),
+                    EndTime = DateTime.Now.AddHours(-3),
+                    PausedMinutes = 30,
+                    Notes = $"[{DateTime.Now.AddHours(-3):dd.MM.yyyy HH:mm}] " +
+                            "Mapa wgrana, auto wymaga ponownych logów pod obciążeniem."
+                },
+                new() {
+                    Name = "Montaż świec i kontrola zapłonu",
+                    OrderId = orders[5].Id,
+                    AssignedEmployeeId = mech1.Id,
+                    StartTime = DateTime.Now.AddHours(-2),
+                    PausedMinutes = 0,
+                    Notes = $"[{DateTime.Now.AddHours(-1):dd.MM.yyyy HH:mm}] " +
+                            "W trakcie kontroli cewek zapłonowych."
                 }
             };
             context.ServiceTasks.AddRange(serviceTasks);
@@ -383,6 +588,38 @@ namespace WarsztatTuningowy.Data
                     IsUsed = false
                 },
                 new() {
+                    OrderId = orders[0].Id,
+                    PartId = parts[7].Id,
+                    Quantity = 6,
+                    IsUsed = false
+                },
+                new() {
+                    OrderId = orders[0].Id,
+                    PartId = parts[8].Id,
+                    Quantity = 1,
+                    IsUsed = false
+                },
+
+                new() {
+                    OrderId = orders[1].Id,
+                    PartId = parts[2].Id,
+                    Quantity = 1,
+                    IsUsed = false
+                },
+                new() {
+                    OrderId = orders[1].Id,
+                    PartId = parts[7].Id,
+                    Quantity = 5,
+                    IsUsed = false
+                },
+                new() {
+                    OrderId = orders[1].Id,
+                    PartId = parts[9].Id,
+                    Quantity = 1,
+                    IsUsed = false
+                },
+
+                new() {
                     OrderId = orders[2].Id,
                     PartId = parts[5].Id,
                     Quantity = 1,
@@ -397,6 +634,28 @@ namespace WarsztatTuningowy.Data
                     IsUsed = true
                 },
                 new() {
+                    OrderId = orders[2].Id,
+                    PartId = parts[10].Id,
+                    Quantity = 1,
+                    IsUsed = true
+                },
+                new() {
+                    OrderId = orders[2].Id,
+                    PartId = parts[7].Id,
+                    Quantity = 6,
+                    IsUsed = true
+                },
+
+                new() {
+                    OrderId = orders[3].Id,
+                    PartId = parts[12].Id,
+                    Quantity = 1,
+                    IsUsed = true,
+                    IsVinLocked = true,
+                    LockedVin = vehicles[3].VIN
+                },
+
+                new() {
                     OrderId = orders[4].Id,
                     PartId = parts[3].Id,
                     Quantity = 2,
@@ -407,9 +666,93 @@ namespace WarsztatTuningowy.Data
                     PartId = parts[2].Id,
                     Quantity = 1,
                     IsUsed = true
+                },
+                new() {
+                    OrderId = orders[4].Id,
+                    PartId = parts[4].Id,
+                    Quantity = 1,
+                    IsUsed = true
+                },
+                new() {
+                    OrderId = orders[4].Id,
+                    PartId = parts[7].Id,
+                    Quantity = 4,
+                    IsUsed = true
+                },
+
+                new() {
+                    OrderId = orders[5].Id,
+                    PartId = parts[7].Id,
+                    Quantity = 6,
+                    IsUsed = true
+                },
+                new() {
+                    OrderId = orders[5].Id,
+                    PartId = parts[3].Id,
+                    Quantity = 1,
+                    IsUsed = false
+                },
+                new() {
+                    OrderId = orders[5].Id,
+                    PartId = parts[1].Id,
+                    Quantity = 1,
+                    IsUsed = false,
+                    IsVinLocked = true,
+                    LockedVin = vehicles[5].VIN
                 }
             };
             context.OrderParts.AddRange(orderParts);
+            await context.SaveChangesAsync();
+
+            var partRequests = new List<PartRequest>
+            {
+                new() {
+                    OrderId = orders[1].Id,
+                    PartId = parts[9].Id,
+                    Quantity = 1,
+                    Notes = "Przewody potrzebne przed finalnym strojeniem RS3.",
+                    Status = PartRequestStatus.Ready,
+                    CreatedAt = DateTime.Now.AddDays(-2),
+                    RequestedByEmployeeId = mech2.Id
+                },
+                new() {
+                    OrderId = orders[2].Id,
+                    CustomPartName = "Uszczelniacz turbo Garrett GTX - komplet",
+                    Quantity = 1,
+                    Notes = "Część jednorazowa pod aktualny montaż turbo.",
+                    Status = PartRequestStatus.Pending,
+                    CreatedAt = DateTime.Now.AddHours(-6),
+                    RequestedByEmployeeId = mech3.Id
+                },
+                new() {
+                    OrderId = orders[5].Id,
+                    PartId = parts[4].Id,
+                    Quantity = 1,
+                    Notes = "Downpipe wymagany do finalizacji Stage 2.",
+                    Status = PartRequestStatus.Pending,
+                    CreatedAt = DateTime.Now.AddDays(-1),
+                    RequestedByEmployeeId = mech1.Id
+                },
+                new() {
+                    OrderId = orders[3].Id,
+                    CustomPartName = "Emblematy AMG Black Series - komplet",
+                    Quantity = 1,
+                    Notes = "Część customowa do zlecenia wizualnego, gotowa do odbioru.",
+                    Status = PartRequestStatus.Ready,
+                    CreatedAt = DateTime.Now.AddHours(-10),
+                    RequestedByEmployeeId = mech1.Id
+                },
+                new() {
+                    OrderId = orders[1].Id,
+                    CustomPartName = "Uszczelka downpipe RS3 8Y",
+                    Quantity = 1,
+                    Notes = "Czekamy na potwierdzenie dostępności u dostawcy.",
+                    Status = PartRequestStatus.Ordered,
+                    CreatedAt = DateTime.Now.AddDays(-1),
+                    RequestedByEmployeeId = mech2.Id
+                }
+            };
+            context.PartRequests.AddRange(partRequests);
             await context.SaveChangesAsync();
 
             var workstations = context.Workstations.ToList();

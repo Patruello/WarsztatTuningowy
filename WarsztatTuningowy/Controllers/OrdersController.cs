@@ -416,11 +416,97 @@ namespace WarsztatTuningowy.Controllers
                 .ToListAsync();
 
             var csv = "sep=;\r\n" + Invoice.ExportAllToCsv(invoices);
-            var encoding = System.Text.Encoding.GetEncoding("windows-1250");
+            var encoding = Encoding.GetEncoding("windows-1250");
             var bytes = encoding.GetBytes(csv);
 
             return File(bytes, "text/csv",
                 $"faktury_{DateTime.Now:yyyy-MM-dd}.csv");
+        }
+
+        // GET: /Orders/Statement/5
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> Statement(int id)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Vehicle)
+                    .ThenInclude(v => v.Client)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return View(order);
+        }
+
+        // POST: /Orders/Statement/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> Statement(
+            int id,
+            bool modificationScopeAccepted,
+            bool legalConsequencesAccepted,
+            bool warrantyLossAccepted,
+            string statementAcceptedBy)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Vehicle)
+                    .ThenInclude(v => v.Client)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            if (!modificationScopeAccepted || !legalConsequencesAccepted || !warrantyLossAccepted)
+            {
+                TempData["Error"] = "Wszystkie punkty oświadczenia muszą być zaakceptowane.";
+                return View(order);
+            }
+
+            if (string.IsNullOrWhiteSpace(statementAcceptedBy))
+            {
+                TempData["Error"] = "Podaj imię i nazwisko osoby akceptującej.";
+                return View(order);
+            }
+
+            order.ModificationScopeAccepted = true;
+            order.LegalConsequencesAccepted = true;
+            order.WarrantyLossAccepted = true;
+            order.StatementAcceptedAt = DateTime.Now;
+            order.StatementAcceptedBy = statementAcceptedBy;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Oświadczenie zostało zaakceptowane elektronicznie.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // GET: /Orders/GenerateStatement/5
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> GenerateStatement(int id)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Vehicle)
+                    .ThenInclude(v => v.Client)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            if (!order.HasElectronicStatement)
+            {
+                TempData["Error"] = "Oświadczenie nie zostało jeszcze zaakceptowane.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var pdf = _pdfService.GenerateStatement(order);
+            return File(pdf, "application/pdf", $"Oswiadczenie_Zlecenie{id}.pdf");
         }
     }
 }

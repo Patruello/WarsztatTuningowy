@@ -515,5 +515,152 @@ namespace WarsztatTuningowy.Services
                 });
             });
         }
+        public byte[] GenerateStatement(Order order)
+        {
+            return Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(10));
+
+                    page.Header().Element(c => ComposeStatementHeader(c, order));
+                    page.Content().Element(c => ComposeStatementContent(c, order));
+                    page.Footer().Element(ComposeFooter);
+                });
+            }).GeneratePdf();
+        }
+
+        private void ComposeStatementHeader(IContainer container, Order order)
+        {
+            container.Column(col =>
+            {
+                col.Item().Row(row =>
+                {
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text("OŚWIADCZENIE KLIENTA")
+                            .FontSize(22).Bold().FontColor("#1F5C99");
+                        c.Item().Text("Warsztat Tuningowy")
+                            .FontSize(14).Bold();
+                    });
+                    row.ConstantItem(150).Column(c =>
+                    {
+                        c.Item().AlignRight()
+                            .Text(order.StatementAcceptedAt?
+                                .ToString("dd.MM.yyyy HH:mm") ?? "—");
+                    });
+                });
+                col.Item().PaddingTop(10)
+                    .LineHorizontal(1).LineColor("#1F5C99");
+            });
+        }
+
+        private void ComposeStatementContent(
+            IContainer container, Order order)
+        {
+            container.Column(col =>
+            {
+                col.Spacing(15);
+
+                col.Item().Background("#F3F4F6").Padding(10).Column(c =>
+                {
+                    c.Item().Text("DANE ZLECENIA").Bold()
+                        .FontColor("#6B7280").FontSize(8);
+                    c.Item().PaddingTop(5).Row(row =>
+                    {
+                        row.RelativeItem().Text(text =>
+                        {
+                            text.Span("Zlecenie nr: ").Bold();
+                            text.Span($"#{order.Id}");
+                        });
+                        row.RelativeItem().Text(text =>
+                        {
+                            text.Span("Data: ").Bold();
+                            text.Span(order.CreatedAt
+                                .ToString("dd.MM.yyyy"));
+                        });
+                    });
+                    c.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text(text =>
+                        {
+                            text.Span("Klient: ").Bold();
+                            text.Span(order.Vehicle?.Client?.FullName ?? "—");
+                        });
+                        row.RelativeItem().Text(text =>
+                        {
+                            text.Span("Pojazd: ").Bold();
+                            text.Span($"{order.Vehicle?.Brand} {order.Vehicle?.Model} ({order.Vehicle?.Year})");
+                        });
+                    });
+                    c.Item().Text(text =>
+                    {
+                        text.Span("VIN: ").Bold();
+                        text.Span(order.Vehicle?.VIN ?? "—");
+                    });
+                    c.Item().Text(text =>
+                    {
+                        text.Span("Cel tuningu: ").Bold();
+                        text.Span(order.TuningGoal.GetDisplayName());
+                    });
+                });
+
+                col.Item().Text("TREŚĆ OŚWIADCZENIA").Bold()
+                    .FontColor("#6B7280").FontSize(8);
+
+                col.Item().Border(1).BorderColor("#E5E7EB")
+                    .Padding(15).Column(c =>
+                    {
+                        c.Item().Text(
+                            "Ja, niżej podpisany/a, oświadczam że zostałem/am poinformowany/a o zakresie oraz konsekwencjach " +
+                            "technicznych i prawnych zleconych modyfikacji pojazdu.")
+                            .Italic();
+
+                        c.Item().PaddingTop(10).Column(points =>
+                        {
+                            var items = new[]
+                            {
+                                ("✓", "Akceptuję zakres modyfikacji pojazdu określony w zleceniu nr #" + order.Id),
+                                ("✓", "Rozumiem możliwy wpływ modyfikacji na emisję spalin oraz systemy DPF/OPF/GPF"),
+                                ("✓", "Akceptuję ryzyko utraty gwarancji producenta pojazdu"),
+                                ("✓", "Potwierdzam że zostałem/am poinformowany/a o konsekwencjach prawnych modyfikacji (m.in. badanie techniczne, ubezpieczenie)")
+                            };
+
+                            foreach (var (check, text) in items)
+                            {
+                                points.Item().PaddingTop(5).Row(row =>
+                                {
+                                    row.ConstantItem(20)
+                                        .Text(check)
+                                        .FontColor("#27500A").Bold();
+                                    row.RelativeItem().Text(text);
+                                });
+                            }
+                        });
+                    });
+
+                col.Item().Background("#EAF3DE").Padding(10).Column(c =>
+                {
+                    c.Item().Text("POTWIERDZENIE ELEKTRONICZNE").Bold()
+                        .FontColor("#27500A").FontSize(8);
+                    c.Item().PaddingTop(5).Text(text =>
+                    {
+                        text.Span("Oświadczenie zaakceptowano elektronicznie w systemie w dniu: ").Bold();
+                        text.Span(order.StatementAcceptedAt?
+                            .ToString("dd.MM.yyyy o HH:mm") ?? "—");
+                    });
+                    c.Item().Text(text =>
+                    {
+                        text.Span("Przez: ").Bold();
+                        text.Span(order.StatementAcceptedBy ?? "—");
+                    });
+                    c.Item().PaddingTop(5).Text(
+                        "Niniejszy dokument stanowi potwierdzenie elektronicznej akceptacji oświadczenia w systemie informatycznym warsztatu.")
+                        .FontSize(8).Italic().FontColor("#6B7280");
+                });
+            });
+        }
     }
 }

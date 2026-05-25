@@ -24,6 +24,17 @@ namespace WarsztatTuningowy.Models.Domain
         public int VehicleId { get; set; }
         [Display(Name = "Domyślny mechanik")]
         public int? DefaultMechanicId { get; set; }
+        [Display(Name = "Akceptacja zakresu modyfikacji")]
+        public bool ModificationScopeAccepted { get; set; }
+        [Display(Name = "Akceptacja konsekwencji prawnych")]
+        public bool LegalConsequencesAccepted { get; set; }
+        [Display(Name = "Akceptacja utraty gwarancji")]
+        public bool WarrantyLossAccepted { get; set; }
+        [Display(Name = "Data akceptacji oświadczenia")]
+        public DateTime? StatementAcceptedAt { get; set; }
+        [MaxLength(100)]
+        [Display(Name = "Zaakceptowane przez")]
+        public string? StatementAcceptedBy { get; set; }
         
         [Display(Name = "Pojazd")]
         public Vehicle? Vehicle { get; set; }
@@ -41,6 +52,8 @@ namespace WarsztatTuningowy.Models.Domain
         public bool IsOverTime => ActualHours > EstimatedHours;
         [NotMapped]
         public decimal OvertimeHours => Math.Max(0, ActualHours - EstimatedHours);
+        [NotMapped]
+        public bool HasElectronicStatement => ModificationScopeAccepted && LegalConsequencesAccepted && WarrantyLossAccepted && StatementAcceptedAt != null;
 
         public decimal TotalWorkshopCost()
         {

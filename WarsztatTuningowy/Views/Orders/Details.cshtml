@@ -116,6 +116,24 @@
             🧾 Faktura VAT PDF
         </a>
     }
+    @if (!Model.HasElectronicStatement)
+    {
+        <a asp-action="Statement" asp-route-id="@Model.Id"
+           class="btn btn-outline-warning">
+            📋 Oświadczenie klienta
+        </a>
+    }
+    else
+    {
+        <a asp-action="Statement" asp-route-id="@Model.Id"
+           class="btn btn-outline-success">
+            ✓ Podgląd oświadczenia
+        </a>
+        <a asp-action="GenerateStatement" asp-route-id="@Model.Id"
+           class="btn btn-outline-primary" target="_blank">
+            📄 PDF oświadczenia
+        </a>
+    }
 </div>
 
 <div class="row g-4 mb-4">
@@ -148,6 +166,26 @@
                     <dt class="col-sm-5 text-muted">Domyślny mechanik</dt>
                     <dd class="col-sm-7">
                         @(Model.DefaultMechanic?.FullName ?? "—")
+                    </dd>
+                    <dt class="col-sm-5 text-muted">Oświadczenie klienta</dt>
+                    <dd class="col-sm-7">
+                        @if (Model.HasElectronicStatement)
+                        {
+                            <span class="badge bg-success">Zaakceptowane</span>
+                            <small class="text-muted d-block">
+                                @Model.StatementAcceptedAt?.ToString("dd.MM.yyyy HH:mm")
+                                · @Model.StatementAcceptedBy
+                            </small>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Brak</span>
+                            <a asp-action="Statement"
+                               asp-route-id="@Model.Id"
+                               class="btn btn-sm btn-outline-warning ms-2">
+                                Uzupełnij
+                            </a>
+                        }
                     </dd>
                 </dl>
             </div>

@@ -22,9 +22,20 @@
            class="btn btn-outline-warning">📦 Korekta stanu</a>
         <a asp-action="Edit" asp-route-id="@Model.Id"
            class="btn btn-outline-primary">Edytuj</a>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            Wróć do listy
-        </a>
+        @if (User.IsInRole("Storekeeper") && !User.IsInRole("Owner"))
+        {
+            <a asp-controller="Home"
+               asp-action="Storekeeper"
+               class="btn btn-outline-secondary">
+                Wróć do magazynu
+            </a>
+        }
+        else
+        {
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                Wróć do listy
+            </a>
+        }
     </div>
 </div>
 
